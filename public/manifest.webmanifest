@@ -1,0 +1,12 @@
+{
+  "name": "Princess",
+  "short_name": "Princess",
+  "description": "All-in-one women's marketplace: shop, rent, and book beauty services.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF7",
+  "theme_color": "#B76E79",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": []
+}

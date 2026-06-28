@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Princess design tokens — DESIGN_RULES.md §2.
+ * HSL channel triplets so Tailwind can apply alpha modifiers (e.g. bg-accent/40).
+ * Brand theme — NOT the shadcn default (DESIGN_RULES §14).
+ */
+@layer base {
+  :root {
+    --background: 30 100% 98%; /* ivory #FFFBF7 */
+    --foreground: 315 11% 15%; /* plum-ink #2A2228 */
+
+    --card: 0 0% 100%; /* pearl */
+    --card-foreground: 315 11% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 315 11% 15%;
+
+    --primary: 351 34% 57%; /* rose-gold #B76E79 */
+    --primary-foreground: 0 0% 100%;
+    --primary-deep: 350 29% 47%; /* rose-gold-deep #9A5560 */
+
+    --secondary: 24 79% 87%; /* peach #F8D9C4 */
+    --secondary-foreground: 315 11% 15%;
+
+    --muted: 25 87% 94%; /* peach-soft #FDEEE3 */
+    --muted-foreground: 320 6% 41%; /* mauve-gray #6E626A */
+
+    --accent: 35 52% 84%; /* champagne #EBD9C0 */
+    --accent-foreground: 315 11% 15%;
+
+    --destructive: 352 50% 46%; /* #B23B4A */
+    --destructive-foreground: 0 0% 100%;
+    --success: 147 33% 36%; /* #3E7C5A */
+    --success-foreground: 0 0% 100%;
+    --warning: 37 66% 46%; /* #C58A28 */
+    --warning-foreground: 0 0% 100%;
+    --info: 214 30% 50%; /* #5A7BA6 */
+    --info-foreground: 0 0% 100%;
+
+    --gold: 46 68% 47%; /* gold-accent #C9A227 */
+    --mist: 330 7% 63%; /* #A89AA1 */
+
+    --border: 29 42% 89%; /* warm hairline #EFE3D8 */
+    --input: 29 42% 89%;
+    --ring: 351 34% 57%; /* rose-gold focus ring */
+
+    --radius: 0.75rem; /* 12px — md (buttons/inputs) */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  /* DESIGN_RULES §8 — finer, more elegant Lucide stroke. */
+  .lucide {
+    stroke-width: 1.75;
+  }
+}
