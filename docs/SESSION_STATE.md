@@ -11,6 +11,8 @@
 | 0.1 | Scaffold (Next 14 + TS strict + Tailwind + shadcn/ui, brand tokens, folder skeleton, PWA baseline) | ✅ Done — typecheck + lint green |
 | 0.2 | Supabase clients (`lib/supabase/{client,server,admin}.ts`), `lib/database.types.ts`, `db:types` script, `.env.example` | ✅ Done — typecheck + lint green |
 | 0.3 | `supabase/migrations/0001_foundation.sql` (extensions, enums, `profiles`, `handle_new_user` + `set_updated_at` triggers, RLS enabled) | ✅ Done — **applied to live DB & verified** |
+| 0.4 | `supabase/migrations/0002_rls_and_settings.sql` (profiles RLS + no-escalation column grants; `platform_settings` + `platform_upfront_fees` + seed; RLS authenticated-read/service-role-write) | ✅ Done — **applied to live DB & verified** |
+| 0.5 | i18n + RTL shell (`next-intl` v4, `app/[locale]`, `ar` default + `localeDetection:false`, message catalogs, ThemeProvider+Toaster, localized landing). Root layout deleted so `[locale]/layout` is root (fixes missing-html-tags). | ✅ Done — **verified in browser** (/→/ar Arabic RTL; /en LTR; no root-layout error) |
 
 ### Task 0.3 — DoD: FULL PASS
 - Migration applied to live project `kukjkkkpyohsykaeealw`. ✅
@@ -23,10 +25,8 @@
 REQ-AUTH-01..05 marked **In progress** in the matrix (DB foundation live; routes/forms/RBAC still to come in 0.6/0.7). REQ-AUTH-06 not started.
 
 ## What's next
-**Task 0.4 — RLS baseline + `platform_settings` seed** (do NOT start until triggered). It will create `supabase/migrations/0002_rls_and_settings.sql`:
-- RLS policies on `profiles` (self read/update; no role/status self-escalation; admin via service-role).
-- `platform_settings` (commission defaults 15/10/10 — BR-4) + `platform_upfront_fees` (per offering_type × currency, minor units — C7/C10) + seed.
-- Then: push, regenerate types, verify. (Ref: DATABASE.md §3.19/§3.20/§6, PHASE_0_TASKS.md Task 0.4.)
+**Task 0.6 — middleware (Supabase session + locale + RBAC)** — IN PROGRESS this session. Composes `intlMiddleware` with Supabase `getUser()` session refresh and a `/<locale>/dashboard/*` role guard (unauth→login; wrong role→own dashboard; role read from DB, never client claims). Files: `middleware.ts`, `lib/rbac.ts`. Then Task 0.7 (auth routes/forms).
+- Note: 0.6 can't be runtime-verified in this sandbox (needs a live session); user verifies redirects in browser.
 
 ## Standing workflow reminder (DB tasks)
 This sandbox **cannot reach Postgres** (DNS/5432 egress blocked; only HTTPS works), so:

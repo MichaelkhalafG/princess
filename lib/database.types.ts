@@ -39,6 +39,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      platform_settings: {
+        Row: {
+          commission_products: number
+          commission_rentals: number
+          commission_services: number
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          commission_products?: number
+          commission_rentals?: number
+          commission_services?: number
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          commission_products?: number
+          commission_rentals?: number
+          commission_services?: number
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_upfront_fees: {
+        Row: {
+          amount_minor: number
+          currency: Database["public"]["Enums"]["currency_code"]
+          offering_type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_minor: number
+          currency: Database["public"]["Enums"]["currency_code"]
+          offering_type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          currency?: Database["public"]["Enums"]["currency_code"]
+          offering_type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_upfront_fees_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

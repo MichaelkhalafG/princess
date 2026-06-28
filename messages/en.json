@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "rentals": "Rentals",
+    "services": "Services",
+    "eventPlanners": "Event Planners",
+    "login": "Log in",
+    "register": "Sign up",
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "role": "Role",
+    "submit": "Submit"
+  },
+  "common": {
+    "loading": "Loading…",
+    "empty": "Nothing to show yet.",
+    "error": "Something went wrong. Please try again."
+  },
+  "home": {
+    "brand": "Princess",
+    "tagline": "Everything a princess needs, in one place",
+    "description": "Shop products, rent dresses, and book beauty services — with the royal treatment on every request.",
+    "cta": "Start shopping"
+  }
+}

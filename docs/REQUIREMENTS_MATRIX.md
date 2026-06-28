@@ -27,11 +27,11 @@
 | REQ-ID | Description | Priority | Phase | Status | Notes |
 |--------|-------------|----------|-------|--------|-------|
 | REQ-AUTH-01 | Register (email/password, role at signup) | P0 | 0 | In progress | 0.3: `profiles` + `handle_new_user` trigger live (role from signup metadata). Register API/form = Task 0.7 |
-| REQ-AUTH-02 | Login + session via `@supabase/ssr` | P0 | 0 | In progress | 0.2: ssr clients built. Session middleware = 0.6; login route/form = 0.7 |
+| REQ-AUTH-02 | Login + session via `@supabase/ssr` | P0 | 0 | In progress | 0.2: ssr clients. 0.6: middleware session refresh live & verified. Login route/form = 0.7 |
 | REQ-AUTH-03 | Roles: customer/seller/provider/admin | P0 | 0 | In progress | 0.3: enum `user_role` (`provider`, not service_provider) + `profiles.role` live |
 | REQ-AUTH-04 | Provider type freelancer/center | P1 | 0 | In progress | 0.3: `profiles.provider_type` enum/column live |
 | REQ-AUTH-05 | Seller/provider admin approval before listing | P0 | 0 | In progress | 0.3: trigger sets non-customers to `pending` (verified live: seller=pending, customer=active). Admin approval UI later |
-| REQ-AUTH-06 | RBAC middleware + RLS enforcement | P0 | 0 | Not started | RLS-first + middleware + RoleGuard (0.4 policies / 0.6 middleware) |
+| REQ-AUTH-06 | RBAC middleware + RLS enforcement | P0 | 0 | In progress | 0.4: `profiles` RLS policies. 0.6: middleware composes intl + Supabase session refresh + `/dashboard/*` role guard (role read from DB, not client claims) — pending browser verify. RoleGuard component = 0.10 |
 
 ## B. Products (Buy)
 
@@ -63,7 +63,7 @@
 | REQ-PAY-03 | Confirm COD (admin/agent) | P0 | 2 | Not started | C9: admin confirms v1 |
 | REQ-PAY-04 | Paid ONLY when upfront AND COD | P0 | 2 | Not started | **`is_paid` STORED generated col** |
 | REQ-PAY-05 | Commission settlement before payout | P0 | 2 | Not started | `settlements` |
-| REQ-PAY-06 | Configurable commission/fees (admin) | P0 | 2 | Not started | `platform_settings`(+fees) BR-4 |
+| REQ-PAY-06 | Configurable commission/fees (admin) | P0 | 2 | In progress | 0.4: `platform_settings` (15/10/10) + `platform_upfront_fees` (per type×currency, minor units) live & seeded, RLS authenticated-read/service-role-write. Admin UI/API = Phase 2 |
 | REQ-PAY-07 | `PaymentProvider` abstraction (Tap; Stripe later) | P1 | 0 | Not started | `lib/payments` |
 
 ## E. Rentals
@@ -140,11 +140,11 @@
 
 | REQ-ID | Description | Priority | Phase | Status | Notes |
 |--------|-------------|----------|-------|--------|-------|
-| REQ-NFR-01 | RTL + Arabic-first bilingual | P0 | 0 | Not started | `next-intl` |
+| REQ-NFR-01 | RTL + Arabic-first bilingual | P0 | 0 | In progress | 0.5: `next-intl` + `[locale]` routing (ar default, en), RTL `dir` per locale, message catalogs — verified in browser (/→/ar Arabic RTL, /en LTR). Per-feature translations ongoing |
 | REQ-NFR-02 | Mobile responsive / PWA-ready | P0 | 0+ | Not started | repeated by client |
 | REQ-NFR-03 | RBAC isolation (sellers/providers/admin) | P0 | 0 | Not started | RLS + guards |
 | REQ-NFR-04 | Performance (RSC, caching) | P1 | all | Not started | |
-| REQ-NFR-05 | Security (RLS, webhook verify, validation) | P0 | all | Not started | deny-by-default |
+| REQ-NFR-05 | Security (RLS, webhook verify, validation) | P0 | all | In progress | 0.1–0.4: RLS deny-by-default on `profiles`/settings tables, service-role server-only, secrets in env. Webhook verify + Zod = later phases |
 | REQ-NFR-06 | Accessibility WCAG AA | P1 | all | Not started | DESIGN_RULES §10 |
 | REQ-NFR-07 | SEO (metadata/sitemap/hreflang) | P1 | all | Not started | |
 | REQ-NFR-08 | Elegant feminine design (peach/rose-gold/white) | P0 | 0+ | Not started | DESIGN_RULES |
@@ -197,3 +197,4 @@
 - 2026-06-28 — Conflicts C7–C10 confirmed (defaults).
 - 2026-06-28 — **Upgraded to REQ-ID|Description|Priority|Phase|Status|Notes format; aligned with rebuilt DATABASE.md (provider/profile_status/portfolio_items/is_paid/platform_upfront_fees); phases + deferrals made explicit.**
 - 2026-06-28 — Phase 0 progress: Tasks 0.1–0.3 done & verified. REQ-AUTH-01..05 → In progress (0.3 DB foundation live: profiles, role/provider_type/profile_status enums, signup trigger, pending state, RLS enabled — smoke-test confirmed seller=pending/customer=active, relrowsecurity=true).
+- 2026-06-28 — Task 0.4 done & verified (0002 pushed): profiles RLS policies + no-escalation column grants; platform_settings + platform_upfront_fees live, seeded, RLS authenticated-read/service-role-write. REQ-AUTH-06, REQ-PAY-06, REQ-NFR-05 → In progress.
