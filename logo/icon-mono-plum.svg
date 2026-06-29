@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Princess">
+  <g fill="none" stroke="#34232E" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="50,12 63,33 72,50 63,67 50,88 37,67 28,50 37,33" stroke-width="2.2"></polygon>
+    <g stroke-width="1.2" stroke-opacity=".8">
+      <line x1="50" y1="12" x2="50" y2="88"></line><line x1="28" y1="50" x2="72" y2="50"></line>
+      <line x1="37" y1="33" x2="50" y2="50"></line><line x1="63" y1="33" x2="50" y2="50"></line>
+      <line x1="37" y1="67" x2="50" y2="50"></line><line x1="63" y1="67" x2="50" y2="50"></line>
+    </g>
+  </g>
+</svg>

@@ -10,11 +10,85 @@
     "dashboard": "Dashboard"
   },
   "auth": {
-    "email": "Email",
-    "password": "Password",
-    "fullName": "Full name",
-    "role": "Role",
-    "submit": "Submit"
+    "fields": {
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "role": "Account type"
+    },
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back to Princess",
+      "submit": "Log in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Create one",
+      "success": "Logged in successfully"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join Princess and begin your royal experience",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "success": "Your account was created",
+      "checkEmail": "Check your email to confirm your account before logging in"
+    },
+    "roles": {
+      "label": "Account type",
+      "placeholder": "Choose an account type",
+      "customer": {
+        "label": "Customer",
+        "description": "Shop products, rent dresses, and book services"
+      },
+      "seller": {
+        "label": "Seller",
+        "description": "List and sell your products and manage orders"
+      },
+      "provider": {
+        "label": "Service provider",
+        "description": "Offer beauty services and manage bookings and portfolio"
+      }
+    },
+    "pending": {
+      "title": "Your account is under review",
+      "description": "The Princess team will review your account before activating it. You can't add listings or services until you're approved."
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "passwordMax": "Password is too long",
+      "fullNameMin": "Name is too short",
+      "fullNameMax": "Name is too long",
+      "roleRequired": "Choose an account type"
+    },
+    "errors": {
+      "VALIDATION": "Check the details you entered and try again",
+      "EMAIL_TAKEN": "This email is already registered",
+      "INVALID_CREDENTIALS": "Email or password is incorrect",
+      "UNAUTHENTICATED": "You need to log in to continue",
+      "INTERNAL": "Something unexpected happened. Please try again",
+      "generic": "Couldn't complete the request. Please try again"
+    },
+    "logout": {
+      "action": "Log out",
+      "success": "Logged out"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "welcomeNoName": "Welcome",
+    "placeholder": "The full dashboard is being built and will be available soon.",
+    "roles": {
+      "customer": "Customer dashboard",
+      "seller": "Seller dashboard",
+      "provider": "Provider dashboard",
+      "admin": "Admin dashboard"
+    }
   },
   "common": {
     "loading": "Loading…",

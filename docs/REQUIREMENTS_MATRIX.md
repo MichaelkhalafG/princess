@@ -26,12 +26,12 @@
 
 | REQ-ID | Description | Priority | Phase | Status | Notes |
 |--------|-------------|----------|-------|--------|-------|
-| REQ-AUTH-01 | Register (email/password, role at signup) | P0 | 0 | In progress | 0.3: `profiles` + `handle_new_user` trigger live (role from signup metadata). Register API/form = Task 0.7 |
-| REQ-AUTH-02 | Login + session via `@supabase/ssr` | P0 | 0 | In progress | 0.2: ssr clients. 0.6: middleware session refresh live & verified. Login route/form = 0.7 |
+| REQ-AUTH-01 | Register (email/password, role at signup) | P0 | 0 | Done | 0.3: `profiles` + `handle_new_user` trigger live (role from signup metadata). 0.7: `POST /api/auth/register` (Zod, role→user metadata so trigger sets status) + RegisterForm + RoleSelect — **verified via Playwright E2E** (customer/seller/provider register, duplicate→EMAIL_TAKEN, ar+en) |
+| REQ-AUTH-02 | Login + session via `@supabase/ssr` | P0 | 0 | Done | 0.2: ssr clients. 0.6: middleware session refresh live & verified. 0.7: `POST /api/auth/login` + `/logout` + `GET /api/auth/me` + LoginForm with role-based redirect — **verified via Playwright E2E** (login ok, wrong-pass→error & not signed in, logout, ar+en) |
 | REQ-AUTH-03 | Roles: customer/seller/provider/admin | P0 | 0 | In progress | 0.3: enum `user_role` (`provider`, not service_provider) + `profiles.role` live |
 | REQ-AUTH-04 | Provider type freelancer/center | P1 | 0 | In progress | 0.3: `profiles.provider_type` enum/column live |
-| REQ-AUTH-05 | Seller/provider admin approval before listing | P0 | 0 | In progress | 0.3: trigger sets non-customers to `pending` (verified live: seller=pending, customer=active). Admin approval UI later |
-| REQ-AUTH-06 | RBAC middleware + RLS enforcement | P0 | 0 | In progress | 0.4: `profiles` RLS policies. 0.6: middleware composes intl + Supabase session refresh + `/dashboard/*` role guard (role read from DB, not client claims) — pending browser verify. RoleGuard component = 0.10 |
+| REQ-AUTH-05 | Seller/provider admin approval before listing | P0 | 0 | In progress | 0.3: trigger sets non-customers to `pending` (verified live: seller=pending, customer=active). 0.7: pending sellers/providers land on a dashboard PendingApprovalBanner (status from `/api/auth/me` / `getSessionProfile`) — **banner presence verified via E2E (seller+provider, absent for customer)**. Admin approval UI + actual listing-disable still later |
+| REQ-AUTH-06 | RBAC middleware + RLS enforcement | P0 | 0 | In progress | 0.4: `profiles` RLS policies. 0.6: middleware composes intl + Supabase session refresh + `/dashboard/*` role guard (role from DB, not client claims) — verified (logged-out →/login). 0.7: dashboard routes exist; role-based redirect verified via E2E. Full role-match guard + RoleGuard component = 0.10; RLS policy tests = Phase 6 |
 
 ## B. Products (Buy)
 
@@ -142,14 +142,14 @@
 |--------|-------------|----------|-------|--------|-------|
 | REQ-NFR-01 | RTL + Arabic-first bilingual | P0 | 0 | In progress | 0.5: `next-intl` + `[locale]` routing (ar default, en), RTL `dir` per locale, message catalogs — verified in browser (/→/ar Arabic RTL, /en LTR). Per-feature translations ongoing |
 | REQ-NFR-02 | Mobile responsive / PWA-ready | P0 | 0+ | Not started | repeated by client |
-| REQ-NFR-03 | RBAC isolation (sellers/providers/admin) | P0 | 0 | Not started | RLS + guards |
+| REQ-NFR-03 | RBAC isolation (sellers/providers/admin) | P0 | 0 | In progress | 0.4: profiles RLS. 0.6: middleware dashboard role guard verified. Per-table RLS + RoleGuard in later phases |
 | REQ-NFR-04 | Performance (RSC, caching) | P1 | all | Not started | |
-| REQ-NFR-05 | Security (RLS, webhook verify, validation) | P0 | all | In progress | 0.1–0.4: RLS deny-by-default on `profiles`/settings tables, service-role server-only, secrets in env. Webhook verify + Zod = later phases |
+| REQ-NFR-05 | Security (RLS, webhook verify, validation) | P0 | all | In progress | 0.1–0.4: RLS deny-by-default on `profiles`/settings; service-role server-only; secrets in env. 0.6: middleware uses anon key + DB role (no client claims). Webhook verify + Zod = later phases |
 | REQ-NFR-06 | Accessibility WCAG AA | P1 | all | Not started | DESIGN_RULES §10 |
-| REQ-NFR-07 | SEO (metadata/sitemap/hreflang) | P1 | all | Not started | |
-| REQ-NFR-08 | Elegant feminine design (peach/rose-gold/white) | P0 | 0+ | Not started | DESIGN_RULES |
+| REQ-NFR-07 | SEO (metadata/sitemap/hreflang) | P1 | all | In progress | 0.1/0.5: root metadata + viewport themeColor; `lang`/`dir` per locale. sitemap/hreflang/OG = later |
+| REQ-NFR-08 | Elegant feminine design (peach/rose-gold/white) | P0 | 0+ | In progress | 0.1: brand tokens (rose-gold/peach/ivory), type scale, 3 shadows, radii, Lucide; shadcn restyled (not default theme). Per-screen polish ongoing |
 | REQ-NFR-09 | Scalability/maintainability (enterprise/modular) | P0 | all | Not started | feature modules |
-| REQ-NFR-10 | Testing (unit/integration/E2E; COD thorough) | P0 | 6 | Not started | |
+| REQ-NFR-10 | Testing (unit/integration/E2E; COD thorough) | P0 | 6 | In progress | Vitest unit (auth schema, 10 tests). **Playwright E2E pulled forward (scoped to auth)**: `playwright.config.ts` (ar+en projects, auto `pnpm dev` webServer, traces on failure) + `tests/e2e/auth.spec.ts` — **16/16 passed on user's machine** (register customer/seller/provider, login ok/wrong-pass, duplicate email, RTL+copy, no console errors). Full E2E (buy/rent/book/quote, COD/webhook) + RLS policy tests still Phase 6 |
 | REQ-NFR-11 | Deployment (Vercel + Supabase) | P0 | 0/7 | Not started | ENV_SETUP.md |
 | REQ-NFR-12 | Storage in Supabase buckets | P0 | 1 | Not started | replaces Cloudinary |
 
@@ -198,3 +198,8 @@
 - 2026-06-28 — **Upgraded to REQ-ID|Description|Priority|Phase|Status|Notes format; aligned with rebuilt DATABASE.md (provider/profile_status/portfolio_items/is_paid/platform_upfront_fees); phases + deferrals made explicit.**
 - 2026-06-28 — Phase 0 progress: Tasks 0.1–0.3 done & verified. REQ-AUTH-01..05 → In progress (0.3 DB foundation live: profiles, role/provider_type/profile_status enums, signup trigger, pending state, RLS enabled — smoke-test confirmed seller=pending/customer=active, relrowsecurity=true).
 - 2026-06-28 — Task 0.4 done & verified (0002 pushed): profiles RLS policies + no-escalation column grants; platform_settings + platform_upfront_fees live, seeded, RLS authenticated-read/service-role-write. REQ-AUTH-06, REQ-PAY-06, REQ-NFR-05 → In progress.
+- 2026-06-29 — Tasks 0.5 & 0.6 done & browser-verified. 0.5: next-intl `[locale]` shell (ar default, RTL, message catalogs, landing). 0.6: composed middleware (intl + Supabase session refresh + dashboard role guard from DB). REQ-NFR-01/03/07/08 → In progress; REQ-AUTH-02/06 progressed.
+- 2026-06-29 — Task 0.7 implemented (sandbox gate passed: typecheck + lint clean, 10/10 unit tests). Auth routes `register`/`login`/`logout`/`me` (typed `{data}|{error:{code,message}}` envelope, server-side Zod), `features/auth` data layer (schema/queries/mutations/client), AuthCard + LoginForm + RegisterForm + RoleSelect, role-based redirect, minimal dashboard landings (customer/seller/provider/admin) with PendingApprovalBanner for pending sellers/providers (REQ-AUTH-05). All copy via `messages/*`; admin not self-registerable (schema rejects it). RLS smoke note at `tests/integration/auth.rls-smoke.md`. **Awaiting user browser verification** before marking 0.7 verified PASS. REQ-AUTH-01/02/05/06 progressed.
+- 2026-06-29 — Playwright E2E set up (pulled forward from Phase 6, scoped to auth) so auth flows are verified by `pnpm test:e2e` instead of by hand. Added `@playwright/test`, `playwright.config.ts` (ar+en projects, baseURL :3000, auto `pnpm dev` webServer, traces/screenshots on failure), `tests/e2e/{fixtures.ts,auth.spec.ts,README.md}` + `data-testid`s on auth forms/banner/logout. 16 tests collected & compile (typecheck + lint + `playwright --list` green in sandbox). **0.7 stays "awaiting verification" until the user's `pnpm test:e2e` run is green.** REQ-NFR-10 → In progress.
+- 2026-06-29 — **Task 0.7 VERIFIED PASS.** User ran `pnpm test:e2e` → **16/16 passed** (ar+en). Root cause of an initial failure was Supabase "Confirm email" being ON; user turned it OFF (⚠️ **must be re-enabled before production** — see prod caveat below) and ran the E2E teardown SQL. REQ-AUTH-01/02 → Done; REQ-AUTH-05/06 progressed; REQ-NFR-10 → In progress (auth E2E green).
+- ⚠️ **PROD CAVEAT (Supabase Auth "Confirm email"):** turned OFF in dev so registration returns a session (E2E + smooth dev). **Re-enable before production** so emails are verified; when re-enabled the app already handles the no-session path (register → "check your email" → login). Tracked for the pre-launch checklist.

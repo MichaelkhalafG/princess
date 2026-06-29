@@ -4,7 +4,7 @@
 > Authoritative planning docs: `REQUIREMENTS_MATRIX.md` (the law), `DATABASE.md`, `IMPLEMENTATION_PLAN.md`, `CLAUDE_RULES.md`, `DESIGN_RULES.md`, `ENV_SETUP.md`.
 
 ## Where we are
-**Phase 0 (Foundation).** Tasks 0.1 → 0.3 complete and verified.
+**Phase 0 (Foundation).** Tasks 0.1 → 0.7 complete & verified (0.7 verified by Playwright E2E, 16/16 green). Next: Task 0.8 (on trigger).
 
 | Task | What | Status |
 |------|------|--------|
@@ -13,6 +13,8 @@
 | 0.3 | `supabase/migrations/0001_foundation.sql` (extensions, enums, `profiles`, `handle_new_user` + `set_updated_at` triggers, RLS enabled) | ✅ Done — **applied to live DB & verified** |
 | 0.4 | `supabase/migrations/0002_rls_and_settings.sql` (profiles RLS + no-escalation column grants; `platform_settings` + `platform_upfront_fees` + seed; RLS authenticated-read/service-role-write) | ✅ Done — **applied to live DB & verified** |
 | 0.5 | i18n + RTL shell (`next-intl` v4, `app/[locale]`, `ar` default + `localeDetection:false`, message catalogs, ThemeProvider+Toaster, localized landing). Root layout deleted so `[locale]/layout` is root (fixes missing-html-tags). | ✅ Done — **verified in browser** (/→/ar Arabic RTL; /en LTR; no root-layout error) |
+| 0.6 | Composed `middleware.ts` (intl + Supabase session refresh + `/dashboard/*` role guard from DB) + `lib/rbac.ts` | ✅ Done — **verified in browser** (logged-out → /login; role guard) |
+| 0.7 | Auth: routes `register`/`login`/`logout`/`me` (typed envelope, server Zod), `features/auth/*` (schema/queries/mutations/client + components AuthCard/LoginForm/RegisterForm/RoleSelect), role-based redirect, minimal dashboard landings + PendingApprovalBanner. Unit test (schema) + RLS smoke note. **+ Playwright E2E** (config + `tests/e2e/auth.spec.ts`, 16 tests ar/en) to verify auth without hand-testing. | ✅ Done — **verified via Playwright E2E (16/16 passed, ar+en)** + typecheck/lint/unit green |
 
 ### Task 0.3 — DoD: FULL PASS
 - Migration applied to live project `kukjkkkpyohsykaeealw`. ✅
@@ -22,22 +24,27 @@
 - `lib/database.types.ts` regenerated from the LIVE database (contains `profiles` + 4 enums). ✅
 - `pnpm typecheck` + `pnpm lint` green against regenerated types. ✅
 
-REQ-AUTH-01..05 marked **In progress** in the matrix (DB foundation live; routes/forms/RBAC still to come in 0.6/0.7). REQ-AUTH-06 not started.
+REQ-AUTH-01..06 marked **In progress** in the matrix (DB foundation + RLS + session/RBAC middleware live; auth routes/forms still to come in 0.7).
 
 ## What's next
-**Task 0.6 — middleware (Supabase session + locale + RBAC)** — IN PROGRESS this session. Composes `intlMiddleware` with Supabase `getUser()` session refresh and a `/<locale>/dashboard/*` role guard (unauth→login; wrong role→own dashboard; role read from DB, never client claims). Files: `middleware.ts`, `lib/rbac.ts`. Then Task 0.7 (auth routes/forms).
-- Note: 0.6 can't be runtime-verified in this sandbox (needs a live session); user verifies redirects in browser.
+**Task 0.8 — payment & notification provider abstractions** (`lib/payments`, `lib/notifications`). Do NOT start until the user triggers it. Per CLAUDE_RULES §3 (provider abstractions — never call Tap/Resend directly from feature code) + API_MAP Payments/Notifications. Tap is primary (Stripe deferred), Resend for email (SMS/Twilio = Phase 2).
 
-## Standing workflow reminder (DB tasks)
-This sandbox **cannot reach Postgres** (DNS/5432 egress blocked; only HTTPS works), so:
-1. **Claude Code writes** the migration SQL (and updates docs/types expectations).
-2. **You run from your own terminal:** `pnpm exec supabase db push` then `pnpm db:types`.
-3. **You paste results back** (push output + any smoke-test/SQL-editor output); Claude verifies & reconciles against DATABASE.md before advancing.
-- Alternative: provide a short-lived `sbp_` Personal Access Token and Claude can run apply/types/smoke via the Management API over HTTPS (revoke it after).
+**Verifying tasks from here on:** auth (and future flows) are covered by `pnpm test:e2e` (auto-starts `pnpm dev`; green = 16/16, ar+en). Extend `tests/e2e/*` as new flows land rather than hand-testing. E2E users use unique `…@e2e.princess.test` emails; teardown: `delete from auth.users where email like '%@e2e.princess.test';`.
+
+## Standing workflow
+Sandbox limits: **cannot reach Postgres** (DNS/5432 egress blocked; only HTTPS) and **cannot run `pnpm dev`** (Google Fonts egress blocked). So:
+1. **Claude Code writes** code + migrations (and updates docs/type expectations); runs `pnpm typecheck` + `pnpm lint` as the sandbox gate.
+2. **You run from your own terminal:** `pnpm exec supabase db push` + `pnpm db:types` for DB changes, and `pnpm dev` to verify UI/runtime in the browser.
+3. **You paste results back** (push/types output, browser verification); Claude reconciles against DATABASE.md / the task DoD before advancing.
+- **Secrets rule:** you NEVER paste DB passwords or PATs into chat. (The 0.3 DB password that was shared earlier should still be rotated — see below.) typecheck+lint passing is necessary but NOT sufficient — runtime bugs (e.g. 0.5) only surface in `pnpm dev`.
 
 ## ⚠️ Not committed yet
-**No git commit has been made.** Uncommitted work spans **Tasks 0.1–0.3** (scaffold, Supabase wiring, migration 0001 + generated types, planning docs). When ready to commit, branch first (repo currently not initialized / on default) and reference the Phase-0 REQ-IDs.
+**No git commit has been made.** Uncommitted work spans **Tasks 0.1–0.7** (scaffold, Supabase wiring, migrations 0001+0002 + generated types, i18n/RTL shell, composed middleware, auth routes/forms/dashboards, Vitest + Playwright E2E setup — `@playwright/test` added to `package.json`/lockfile, planning docs). When ready to commit, branch first (repo not initialized yet) and reference the Phase-0 REQ-IDs.
 
 ## Secrets housekeeping
 - `.env.local` exists with `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publishable key value); `SUPABASE_SERVICE_ROLE_KEY` + Tap/Resend still blank.
 - The **DB password** was shared in chat during 0.3 — **rotate it** (Dashboard → Project Settings → Database → Reset password) when convenient.
+
+## ⚠️ Pre-launch checklist (carry forward to production)
+- **Re-enable Supabase Auth → "Confirm email".** Turned OFF in dev (2026-06-29) so registration returns a session for E2E + smooth dev. App already handles the no-session path (register → "check your email" → login), so re-enabling is safe; do it before production so emails are verified.
+- Rotate the 0.3 DB password (above) before launch if not already done.
