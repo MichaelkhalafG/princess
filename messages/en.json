@@ -7,7 +7,16 @@
     "eventPlanners": "Event Planners",
     "login": "Log in",
     "register": "Sign up",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "account": "Account",
+    "menu": "Menu",
+    "cart": "Shopping bag",
+    "search": "Search",
+    "searchPlaceholder": "Search products, brands…",
+    "language": "Switch language",
+    "returnsNote": "Complimentary returns within 14 days · Authenticity guaranteed",
+    "trackOrder": "Track order",
+    "help": "Help"
   },
   "auth": {
     "fields": {
@@ -93,12 +102,32 @@
   "common": {
     "loading": "Loading…",
     "empty": "Nothing to show yet.",
-    "error": "Something went wrong. Please try again."
+    "error": "Something went wrong. Please try again.",
+    "forbidden": {
+      "title": "This page isn't available to you",
+      "description": "You don't have permission to view this section with your current account.",
+      "cta": "Back to home"
+    }
   },
   "home": {
     "brand": "Princess",
+    "eyebrow": "Shop · Rent · Book",
     "tagline": "Everything a princess needs, in one place",
     "description": "Shop products, rent dresses, and book beauty services — with the royal treatment on every request.",
-    "cta": "Start shopping"
+    "cta": "Start shopping",
+    "explore": "Explore services"
+  },
+  "footer": {
+    "tagline": "Your luxury destination for everything a princess needs — products, rentals, and beauty services, with the royal treatment on every request.",
+    "shop": "Shop",
+    "support": "Support",
+    "legal": "Legal",
+    "about": "About us",
+    "contact": "Contact us",
+    "faq": "FAQ",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "followUs": "Follow us",
+    "rights": "© {year} Princess. All rights reserved."
   }
 }

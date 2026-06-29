@@ -30,6 +30,10 @@ export const metadata: Metadata = {
   title: { default: "Princess", template: "%s · Princess" },
   description: "Princess — all-in-one women's marketplace: shop, rent, and book beauty services.",
   manifest: "/manifest.webmanifest",
+  // Brand favicon (Version C — Rose Jewel, 16px-safe). Navbar/Footer lockups = Task 0.10.
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport: Viewport = {

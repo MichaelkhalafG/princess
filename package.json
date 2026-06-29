@@ -12,7 +12,8 @@
     "db:types": "supabase gen types typescript --linked > lib/database.types.ts",
     "format": "prettier --write .",
     "test": "vitest run --passWithNoTests",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "spike:tap": "tsx --tsconfig scripts/tsconfig.json scripts/tap-spike.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -57,6 +58,7 @@
     "prettier-plugin-tailwindcss": "^0.6.5",
     "supabase": "^2.108.0",
     "tailwindcss": "^3.4.7",
+    "tsx": "^4.22.4",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

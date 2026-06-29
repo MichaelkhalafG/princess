@@ -1,27 +1,44 @@
-import { Crown } from "lucide-react";
+import { Crown, Sparkles } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
-// Scaffold landing (Phase 0 · Task 0.5). Every string comes from messages/*
-// (CLAUDE_RULES §7 — zero hardcoded UI text). Server component by default.
+// Landing hero (Phase 0). Premium, spacious, layered (DESIGN_RULES §1/§4): a warm
+// peach→ivory wash, the brand emblem, a serif display headline, and a single
+// rose-gold primary CTA (§2.3) beside a secondary. All copy from messages/*.
 export default async function HomePage({ params }: { params: { locale: string } }) {
-  const { locale } = params;
-  setRequestLocale(locale);
+  setRequestLocale(params.locale);
   const t = await getTranslations("home");
 
   return (
-    <main className="container flex min-h-screen flex-col items-center justify-center gap-6 py-24 text-center">
-      <span
-        className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary shadow-soft"
-        aria-hidden
-      >
-        <Crown className="h-8 w-8" />
-      </span>
-      <h1 className="font-serif text-h1 text-foreground">{t("brand")}</h1>
-      <p className="text-body-lg text-foreground">{t("tagline")}</p>
-      <p className="max-w-prose text-body text-muted-foreground">{t("description")}</p>
-      <Button size="lg">{t("cta")}</Button>
-    </main>
+    <section className="relative overflow-hidden bg-gradient-to-b from-muted to-background">
+      <div className="container flex flex-col items-center gap-8 py-24 text-center lg:py-32">
+        <span
+          className="grid h-20 w-20 place-items-center rounded-full bg-secondary text-primary shadow-soft"
+          aria-hidden
+        >
+          <Crown className="h-10 w-10" />
+        </span>
+
+        <span className="inline-flex items-center gap-2 text-caption uppercase tracking-widest text-muted-foreground">
+          <Sparkles className="h-4 w-4 text-gold" aria-hidden />
+          {t("eyebrow")}
+        </span>
+
+        <h1 className="max-w-3xl font-serif text-display text-foreground">{t("tagline")}</h1>
+
+        <p className="max-w-xl text-body-lg text-muted-foreground">{t("description")}</p>
+
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+          <Button asChild size="lg" className="shadow-soft">
+            <Link href="/products">{t("cta")}</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/services">{t("explore")}</Link>
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }

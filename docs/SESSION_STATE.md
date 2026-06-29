@@ -4,7 +4,7 @@
 > Authoritative planning docs: `REQUIREMENTS_MATRIX.md` (the law), `DATABASE.md`, `IMPLEMENTATION_PLAN.md`, `CLAUDE_RULES.md`, `DESIGN_RULES.md`, `ENV_SETUP.md`.
 
 ## Where we are
-**Phase 0 (Foundation).** Tasks 0.1 → 0.7 complete & verified (0.7 verified by Playwright E2E, 16/16 green). Next: Task 0.8 (on trigger).
+**Phase 0 (Foundation).** Tasks 0.1 → 0.10 done; **0.11 phase-gate prepared** (`docs/PHASE_0_ACCEPTANCE.md`) — gates green, awaiting the user's **Vercel preview** verification. No commit until the user confirms preview is green; then commit + tag `phase-0`.
 
 | Task | What | Status |
 |------|------|--------|
@@ -15,6 +15,8 @@
 | 0.5 | i18n + RTL shell (`next-intl` v4, `app/[locale]`, `ar` default + `localeDetection:false`, message catalogs, ThemeProvider+Toaster, localized landing). Root layout deleted so `[locale]/layout` is root (fixes missing-html-tags). | ✅ Done — **verified in browser** (/→/ar Arabic RTL; /en LTR; no root-layout error) |
 | 0.6 | Composed `middleware.ts` (intl + Supabase session refresh + `/dashboard/*` role guard from DB) + `lib/rbac.ts` | ✅ Done — **verified in browser** (logged-out → /login; role guard) |
 | 0.7 | Auth: routes `register`/`login`/`logout`/`me` (typed envelope, server Zod), `features/auth/*` (schema/queries/mutations/client + components AuthCard/LoginForm/RegisterForm/RoleSelect), role-based redirect, minimal dashboard landings + PendingApprovalBanner. Unit test (schema) + RLS smoke note. **+ Playwright E2E** (config + `tests/e2e/auth.spec.ts`, 16 tests ar/en) to verify auth without hand-testing. | ✅ Done — **verified via Playwright E2E (16/16 passed, ar+en)** + typecheck/lint/unit green |
+| 0.8 | Provider abstractions: `lib/payments/{PaymentProvider,tap,stripe,index}` (Tap primary — sandbox-stub createIntent w/ optional `destination` for split→Phase 2; **Tap hashstring** webhook verify, timing-safe + fail-closed; Stripe NotImplemented stub; factory) + `lib/notifications/{NotificationService,resend,sms,index}` (Resend email channel; SMS interface placeholder Phase 2). Secrets env + `server-only`; integer minor units; feature code → interfaces only. Unit test (factory + minor-units guard + webhook round-trip/tamper). | ✅ **PASS** (user-reviewed) — typecheck + lint + 21/21 unit green |
+| 0.9 | Tap sandbox spike: `TapProvider.createIntent` now makes the **real** `/v2/charges` call (minor→major `toTapAmount`, raw on `PaymentIntent.raw`); `scripts/tap-spike.ts` + `scripts/tsconfig.json` + `pnpm spike:tap`; createIntent unit tests mock `fetch`; `docs/SPIKE_NOTES.md`. | ✅ **PASS** — verified live (charge `chg_TS05A…`, INITIATED, transaction.url; SAR=2dp confirmed). Caveat (a) webhook secret deferred → Phase 2 |
 
 ### Task 0.3 — DoD: FULL PASS
 - Migration applied to live project `kukjkkkpyohsykaeealw`. ✅
@@ -27,7 +29,14 @@
 REQ-AUTH-01..06 marked **In progress** in the matrix (DB foundation + RLS + session/RBAC middleware live; auth routes/forms still to come in 0.7).
 
 ## What's next
-**Task 0.8 — payment & notification provider abstractions** (`lib/payments`, `lib/notifications`). Do NOT start until the user triggers it. Per CLAUDE_RULES §3 (provider abstractions — never call Tap/Resend directly from feature code) + API_MAP Payments/Notifications. Tap is primary (Stripe deferred), Resend for email (SMS/Twilio = Phase 2).
+**Close Phase 0 (Task 0.11):** see `docs/PHASE_0_ACCEPTANCE.md`. Steps for the user:
+1. (Optional re-confirm) `pnpm test:e2e` → 16 passed; `pnpm test rls` (with `RLS_TEST=1` in `.env.local`) → 9 passed.
+2. **Vercel PREVIEW deploy** with the env list in PHASE_0_ACCEPTANCE §3.1 (sandbox keys; server-only vars NOT `NEXT_PUBLIC_`); run the §3.4 acceptance checklist on the preview URL.
+3. On **green**, confirm → I `git init`, branch, commit (Phase-0 REQ-IDs) + tag `phase-0`. **No commit before that.**
+
+**Then Phase 1 — catalog & storage** (products, filters, detail, seller CRUD, Supabase Storage buckets). Do NOT start until triggered.
+
+**Phase 2 carry-forward from the Tap spike** (`docs/SPIKE_NOTES.md`): confirm the webhook hashstring secret via a delivered sandbox webhook (public `post.url`/ngrok) and align `verifyWebhook` (`TAP_WEBHOOK_SECRET` vs `TAP_SECRET_KEY`); build `/payment/callback` (redirect.url) + webhook handler at `/api/payments/webhook` (post.url); don't assume merchant/currency from the shared sandbox account (599424/KWD) — ours comes with our keys. Then 0.10 (shared primitives Navbar/Footer/LocaleSwitcher/RoleGuard — uses `public/logo.svg`), 0.11 (Phase 0 DoD gate).
 
 **Verifying tasks from here on:** auth (and future flows) are covered by `pnpm test:e2e` (auto-starts `pnpm dev`; green = 16/16, ar+en). Extend `tests/e2e/*` as new flows land rather than hand-testing. E2E users use unique `…@e2e.princess.test` emails; teardown: `delete from auth.users where email like '%@e2e.princess.test';`.
 
@@ -39,7 +48,10 @@ Sandbox limits: **cannot reach Postgres** (DNS/5432 egress blocked; only HTTPS) 
 - **Secrets rule:** you NEVER paste DB passwords or PATs into chat. (The 0.3 DB password that was shared earlier should still be rotated — see below.) typecheck+lint passing is necessary but NOT sufficient — runtime bugs (e.g. 0.5) only surface in `pnpm dev`.
 
 ## ⚠️ Not committed yet
-**No git commit has been made.** Uncommitted work spans **Tasks 0.1–0.7** (scaffold, Supabase wiring, migrations 0001+0002 + generated types, i18n/RTL shell, composed middleware, auth routes/forms/dashboards, Vitest + Playwright E2E setup — `@playwright/test` added to `package.json`/lockfile, planning docs). When ready to commit, branch first (repo not initialized yet) and reference the Phase-0 REQ-IDs.
+**No git commit has been made.** Uncommitted work spans **Tasks 0.1–0.10** (scaffold, Supabase wiring, migrations 0001+0002 + generated types, i18n/RTL shell, composed middleware, auth routes/forms/dashboards, Vitest + Playwright E2E, payment/notification provider abstractions, Tap spike, shared Navbar/Footer/primitives + marketing shell — `@playwright/test` + `tsx` in `package.json`/lockfile, planning docs). When ready to commit, branch first (repo not initialized yet) and reference the Phase-0 REQ-IDs.
+
+## Brand assets (ready for Task 0.10)
+Final logo = **Version C (Rose Jewel)**, confirmed 2026-06-29. Production copies in `public/`: `logo.svg` (horizontal → Navbar), `logo-stacked.svg` (Footer/auth), `icon.svg` (mark), `favicon.svg` (wired in layout `metadata.icons`). Source archive `./logo/` also holds `-reversed` (dark-bg) and `-mono-*` (single-colour) alternates — pull into `public/` when dark mode (Phase 2) / mono use arrives. See memory `brand-logo-assets`.
 
 ## Secrets housekeeping
 - `.env.local` exists with `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publishable key value); `SUPABASE_SERVICE_ROLE_KEY` + Tap/Resend still blank.

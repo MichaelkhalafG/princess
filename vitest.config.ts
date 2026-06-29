@@ -12,6 +12,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./", import.meta.url)),
+      // `server-only` throws outside Next's react-server condition; stub it so
+      // unit tests can import server-only modules (lib/payments, lib/notifications).
+      "server-only": fileURLToPath(new URL("./tests/setup/server-only-stub.ts", import.meta.url)),
     },
   },
 });

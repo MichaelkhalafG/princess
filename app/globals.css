@@ -54,6 +54,12 @@
   * {
     @apply border-border;
   }
+  /* Pin the canvas to ivory and opt out of UA dark-mode styling, so no dark
+     bleeds above the navbar/on overscroll and form controls stay warm-light. */
+  html {
+    background-color: hsl(var(--background));
+    color-scheme: light;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
