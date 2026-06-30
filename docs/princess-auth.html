@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Princess — Auth split-screen (Atelier Line)</title>
+
+<!-- Brand fonts: Playfair (headings) · Inter (Latin UI) · Tajawal (Arabic) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* =================================================================
+   DESIGN TOKENS  — map these to your design-system variables
+   ================================================================= */
+:root{
+  --rose-gold:#B76E79;        /* primary accent — the ONE focal color */
+  --rose-gold-deep:#9A5560;   /* hover / pressed / deep line-art */
+  --peach:#F3C9B4;            /* warm fill */
+  --peach-2:#F8D9C4;          /* warm fill (lighter) */
+  --peach-soft:#FDEEE3;       /* softest warm fill */
+  --champagne:#EBD9C0;        /* warm tertiary / dividers */
+  --ivory:#FFFBF7;            /* form-side background — warm white */
+  --pearl:#FFFFFF;            /* input surfaces */
+  --plum-ink:#2A2228;         /* text — never pure black */
+  --mauve-gray:#6E626A;       /* secondary text */
+  --gold-accent:#C9A227;      /* whisper only — fine filigree lines */
+
+  --field-border:#EDE0D4;     /* hairline warm border */
+  --focus-ring:rgba(183,110,121,.18);
+
+  --font-serif:'Playfair Display',Georgia,serif;
+  --font-ui:'Inter',system-ui,-apple-system,sans-serif;
+  --font-ar:'Tajawal','Inter',sans-serif;
+}
+
+/* =================================================================
+   COMPONENT · .pauth  (split-screen auth)
+   DOM order is [form, banner]; a plain flex row auto-mirrors by dir:
+     • LTR → form on the LEFT,  banner on the RIGHT
+     • RTL → form on the RIGHT, banner on the LEFT
+   No duplicate markup, no row-reverse — the SAME component mirrors.
+   ================================================================= */
+.pauth{
+  display:flex;
+  width:100%; min-height:600px;
+  background:var(--ivory);
+  font-family:var(--font-ui);
+  color:var(--plum-ink);
+  overflow:hidden;
+}
+[dir="rtl"] .pauth{ font-family:var(--font-ar); }
+
+/* ---- FORM SIDE ---------------------------------------------------- */
+.pauth__form{
+  flex:0 0 46%; max-width:560px;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:56px clamp(40px,5vw,72px);
+}
+.pauth__brand{ display:flex; align-items:center; gap:10px; margin-bottom:34px; }
+.pauth__brand svg{ width:34px; height:34px; }
+.pauth__brand-word{ font-family:var(--font-serif); font-weight:600; font-size:22px; color:var(--plum-ink); }
+
+.pauth__title{ font-family:var(--font-serif); font-weight:600; font-size:32px; line-height:1.1; margin:0 0 8px; }
+[dir="rtl"] .pauth__title{ font-family:var(--font-ar); font-weight:700; }
+.pauth__sub{ font-size:14.5px; line-height:1.55; color:var(--mauve-gray); margin:0 0 30px; }
+
+.pauth__fields{ display:flex; flex-direction:column; gap:16px; }
+.pauth__field{ display:flex; flex-direction:column; gap:7px; }
+.pauth__label{ font-size:12.5px; font-weight:600; color:var(--mauve-gray); }
+[dir="rtl"] .pauth__label{ font-weight:700; }
+.pauth__label-row{ display:flex; justify-content:space-between; align-items:baseline; }
+.pauth__forgot{ font-size:12px; font-weight:500; color:var(--rose-gold-deep); text-decoration:none; }
+
+/* Inputs: 44px tall, 12px radius, pearl surface, hairline border */
+.pauth__input{
+  height:44px; border-radius:12px;
+  background:var(--pearl); border:1px solid var(--field-border);
+  padding-inline:14px; font:400 14.5px/1 var(--font-ui); color:var(--plum-ink);
+  width:100%; outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease;
+  appearance:none; -webkit-appearance:none;
+}
+[dir="rtl"] .pauth__input{ font-family:var(--font-ar); }
+.pauth__input::placeholder{ color:#A8917F; }
+/* Clear rose-gold focus ring (the focal accent) */
+.pauth__input:focus,
+.pauth__input.is-focus{ border-color:var(--rose-gold); box-shadow:0 0 0 3px var(--focus-ring); }
+
+/* Select chevron (logical: sits on the END side, flips in RTL) */
+.pauth__select-wrap{ position:relative; }
+.pauth__select-wrap svg{
+  position:absolute; inset-block-start:50%; inset-inline-end:14px;
+  width:17px; height:17px; transform:translateY(-50%);
+  color:#A8917F; pointer-events:none;
+}
+.pauth__input--select{ padding-inline-end:40px; cursor:pointer; }
+
+/* ---- ONE primary action: rose-gold submit -------------------------- */
+.pauth__submit{
+  height:48px; margin-top:24px; border:0; border-radius:12px; cursor:pointer;
+  background:linear-gradient(180deg,#C07C86,var(--rose-gold));
+  color:var(--ivory); font:600 15px/1 var(--font-ui);
+  box-shadow:0 12px 24px -10px rgba(154,85,96,.7), inset 0 0 0 1px rgba(201,162,39,.3); /* whisper of gold rim */
+  transition:background .2s ease, transform .15s ease;
+}
+[dir="rtl"] .pauth__submit{ font-family:var(--font-ar); font-weight:700; }
+.pauth__submit:hover{ background:var(--rose-gold-deep); transform:translateY(-1px); }
+.pauth__submit:active{ transform:translateY(0); }
+
+.pauth__alt{ font-size:13.5px; color:var(--mauve-gray); text-align:center; margin-top:18px; }
+.pauth__alt a{ color:var(--rose-gold-deep); font-weight:600; text-decoration:none; }
+
+/* =================================================================
+   BANNER SIDE  (code-drawn — no photos)
+   Layers, back → front:  gradient · gold filigree · line-art roses · centerpiece
+   ================================================================= */
+.pauth__banner{
+  position:relative; flex:1 1 0; min-width:0; overflow:hidden;
+  /* LAYER 1 · layered warm gradient (champagne → peach → ivory glow) */
+  background:
+    radial-gradient(120% 70% at 22% 6%,  #FFF6EE 0%, rgba(255,246,238,0) 52%),
+    radial-gradient(90% 80% at 96% 104%, rgba(183,110,121,.22) 0%, rgba(183,110,121,0) 58%),
+    linear-gradient(157deg, var(--peach-soft) 0%, var(--peach) 58%, var(--champagne) 100%);
+}
+/* mirror the gradient's horizontal anchors in RTL so light stays on the outer edge */
+[dir="rtl"] .pauth__banner{
+  background:
+    radial-gradient(120% 70% at 78% 6%,  #FFF6EE 0%, rgba(255,246,238,0) 52%),
+    radial-gradient(90% 80% at 4% 104%,  rgba(183,110,121,.22) 0%, rgba(183,110,121,0) 58%),
+    linear-gradient(203deg, var(--peach-soft) 0%, var(--peach) 58%, var(--champagne) 100%);
+}
+
+/* LAYER 2+3 · decorative composition. Authored for LTR; mirrored as a
+   single unit for RTL so the florals always hug the outer-bottom corner. */
+.pauth__decor{ position:absolute; inset:0; pointer-events:none; }
+[dir="rtl"] .pauth__decor{ transform:scaleX(-1); }
+
+.pauth__decor .rose{ position:absolute; }
+.pauth__decor .stem{ position:absolute; }
+
+/* soft light bloom behind the centerpiece */
+.pauth__glow{
+  position:absolute; inset-block-start:-12%; inset-inline-start:-14%;
+  width:46%; aspect-ratio:1; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.6), rgba(255,255,255,0) 70%);
+  mix-blend-mode:screen;
+}
+
+/* LAYER 4 · centerpiece (NOT mirrored — text stays upright in both dirs) */
+.pauth__center{
+  position:absolute; inset:0; z-index:2;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:16px; padding:40px; text-align:center;
+}
+.pauth__center-logo{ display:flex; align-items:center; gap:10px; }
+.pauth__center-logo svg{ width:34px; height:34px; }
+.pauth__center-logo span{ font-family:var(--font-serif); font-weight:600; font-size:25px; color:var(--plum-ink); }
+.pauth__rule{ width:34px; height:1px; background:linear-gradient(90deg,rgba(201,162,39,0),var(--gold-accent),rgba(201,162,39,0)); }
+.pauth__tagline{ max-width:320px; font-size:25px; line-height:1.45; color:var(--plum-ink); }
+.pauth__tagline--en{ font-family:var(--font-serif); font-style:italic; font-weight:500; }
+.pauth__tagline--ar{ font-family:var(--font-ar); font-weight:700; line-height:1.6; }
+
+/* =================================================================
+   RESPONSIVE · mobile (≤820px)
+   Split column → stacked: banner becomes a slim decorative header strip,
+   form fills the rest full-width. Florals thin out; inputs stay 44px.
+   ================================================================= */
+@media (max-width:820px){
+  .pauth{ flex-direction:column; }
+  .pauth__banner{ order:-1; flex:0 0 180px; min-height:180px; }   /* strip on top, before the form */
+  .pauth__form{ flex:1 1 auto; max-width:none; padding:30px 22px 36px; }
+  .pauth__center{ gap:8px; padding:18px; }
+  .pauth__center-logo span{ font-size:20px; }
+  .pauth__tagline{ font-size:14px; }
+  .pauth__decor .rose--sm,
+  .pauth__decor .stem{ display:none; }          /* keep the strip uncluttered */
+}
+
+/* =================================================================
+   DEMO HARNESS ONLY — delete everything below in production
+   ================================================================= */
+*{box-sizing:border-box;}
+body{ margin:0; background:#E8E0D6; font-family:var(--font-ui); color:var(--plum-ink); }
+.demo{ max-width:1320px; margin:0 auto; padding:46px 20px 80px; }
+.demo h1{ font-family:var(--font-serif); font-weight:600; font-size:26px; margin:0 0 4px; }
+.demo p{ font-size:13.5px; color:var(--mauve-gray); margin:0 0 30px; }
+.demo__label{ font:600 11px/1 var(--font-ui); letter-spacing:.14em; text-transform:uppercase; color:#9C8678; margin:0 0 10px; }
+.demo__card{ width:100%; height:720px; border-radius:18px; overflow:hidden;
+  box-shadow:0 22px 60px -26px rgba(154,85,96,.5), 0 2px 8px rgba(0,0,0,.06); margin-bottom:44px; }
+.demo__card .pauth{ height:100%; }
+</style>
+</head>
+
+<body>
+<div class="demo">
+  <h1>Princess — Auth split-screen · Atelier Line</h1>
+  <p>The same <code>.pauth</code> component, mirrored by <code>dir</code>. Below: Arabic·RTL (register) and English·LTR (login).</p>
+
+  <!-- ================================================================
+       INSTANCE A · ARABIC · RTL · REGISTER   (banner left, form right)
+       ================================================================ -->
+  <p class="demo__label">Arabic · RTL — register</p>
+  <div class="demo__card">
+    <section class="pauth" dir="rtl" lang="ar" data-screen-label="AR register">
+
+      <!-- FORM -->
+      <div class="pauth__form">
+        <div class="pauth__brand"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#px-stone"/></svg><span class="pauth__brand-word">Princess</span></div>
+        <h1 class="pauth__title">إنشاء حساب</h1>
+        <p class="pauth__sub">انضمي إلى Princess وابدئي تجربتك الملكية.</p>
+        <form class="pauth__fields" onsubmit="return false">
+          <div class="pauth__field">
+            <label class="pauth__label" for="ar-name">الاسم الكامل</label>
+            <input class="pauth__input" id="ar-name" type="text" value="جمانة الأحمد">
+          </div>
+          <div class="pauth__field">
+            <label class="pauth__label" for="ar-email">البريد الإلكتروني</label>
+            <input class="pauth__input" id="ar-email" type="email" dir="ltr" style="text-align:right" placeholder="you@email.com">
+          </div>
+          <div class="pauth__field">
+            <label class="pauth__label" for="ar-pass">كلمة المرور</label>
+            <input class="pauth__input" id="ar-pass" type="password" value="password">
+          </div>
+          <div class="pauth__field">
+            <label class="pauth__label" for="ar-role">نوع الحساب</label>
+            <div class="pauth__select-wrap">
+              <select class="pauth__input pauth__input--select" id="ar-role">
+                <option>عميلة</option><option>بائعة</option><option>منظِّمة مناسبات</option>
+              </select>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <button class="pauth__submit" type="submit">إنشاء الحساب</button>
+        </form>
+        <p class="pauth__alt">لديك حساب بالفعل؟ <a href="#">تسجيل الدخول</a></p>
+      </div>
+
+      <!-- BANNER -->
+      <div class="pauth__banner">
+        <div class="pauth__decor">
+          <span class="pauth__glow"></span>
+          <!-- gold filigree (whisper) -->
+          <svg viewBox="0 0 600 720" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%" fill="none">
+            <path d="M-20 150 C 160 70 280 200 440 120 C 520 80 560 100 620 70" stroke="#C9A227" stroke-width="1" stroke-opacity=".5"/>
+            <path d="M-10 630 C 160 580 270 660 440 600" stroke="#C9A227" stroke-width="1" stroke-opacity=".32"/>
+          </svg>
+          <!-- line-art roses + stem (outer-bottom cluster) -->
+          <svg class="stem"  viewBox="0 0 120 220" width="200" height="366" style="bottom:-30px;right:-34px;color:#A85C68;opacity:.5;transform:rotate(-8deg)"><use href="#line-stem"/></svg>
+          <svg class="rose rose--lg" viewBox="0 0 100 100" width="176" height="176" style="bottom:18px;right:-26px;color:#9A5560;opacity:.92"><use href="#line-rose"/></svg>
+          <svg class="rose rose--md" viewBox="0 0 100 100" width="104" height="104" style="bottom:150px;right:96px;color:#B76E79;opacity:.8"><use href="#line-rose"/></svg>
+          <svg class="rose rose--sm" viewBox="0 0 100 100" width="72"  height="72"  style="top:48px;left:44px;color:#B76E79;opacity:.5"><use href="#line-rose"/></svg>
+        </div>
+        <div class="pauth__center">
+          <div class="pauth__center-logo"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#px-stone"/></svg><span>Princess</span></div>
+          <span class="pauth__rule"></span>
+          <p class="pauth__tagline pauth__tagline--ar">تبدأ رحلتك الملكية من هنا</p>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- ================================================================
+       INSTANCE B · ENGLISH · LTR · LOGIN   (form left, banner right)
+       ================================================================ -->
+  <p class="demo__label">English · LTR — login</p>
+  <div class="demo__card">
+    <section class="pauth" dir="ltr" lang="en" data-screen-label="EN login">
+
+      <!-- FORM -->
+      <div class="pauth__form">
+        <div class="pauth__brand"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#px-stone"/></svg><span class="pauth__brand-word">Princess</span></div>
+        <h1 class="pauth__title">Welcome back</h1>
+        <p class="pauth__sub">Sign in to continue your princess treatment.</p>
+        <form class="pauth__fields" onsubmit="return false">
+          <div class="pauth__field">
+            <label class="pauth__label" for="en-email">Email</label>
+            <!-- .is-focus shows the rose-gold focus ring in this static demo; real focus uses :focus -->
+            <input class="pauth__input is-focus" id="en-email" type="email" value="jasmine@email.com">
+          </div>
+          <div class="pauth__field">
+            <div class="pauth__label-row">
+              <label class="pauth__label" for="en-pass">Password</label>
+              <a class="pauth__forgot" href="#">Forgot?</a>
+            </div>
+            <input class="pauth__input" id="en-pass" type="password" value="password">
+          </div>
+          <button class="pauth__submit" type="submit">Log in</button>
+        </form>
+        <p class="pauth__alt">New to Princess? <a href="#">Create an account</a></p>
+      </div>
+
+      <!-- BANNER -->
+      <div class="pauth__banner">
+        <div class="pauth__decor">
+          <span class="pauth__glow"></span>
+          <svg viewBox="0 0 600 720" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%" fill="none">
+            <path d="M-20 150 C 160 70 280 200 440 120 C 520 80 560 100 620 70" stroke="#C9A227" stroke-width="1" stroke-opacity=".5"/>
+            <path d="M-10 630 C 160 580 270 660 440 600" stroke="#C9A227" stroke-width="1" stroke-opacity=".32"/>
+          </svg>
+          <svg class="stem"  viewBox="0 0 120 220" width="200" height="366" style="bottom:-30px;right:-34px;color:#A85C68;opacity:.5;transform:rotate(-8deg)"><use href="#line-stem"/></svg>
+          <svg class="rose rose--lg" viewBox="0 0 100 100" width="176" height="176" style="bottom:18px;right:-26px;color:#9A5560;opacity:.92"><use href="#line-rose"/></svg>
+          <svg class="rose rose--md" viewBox="0 0 100 100" width="104" height="104" style="bottom:150px;right:96px;color:#B76E79;opacity:.8"><use href="#line-rose"/></svg>
+          <svg class="rose rose--sm" viewBox="0 0 100 100" width="72"  height="72"  style="top:48px;left:44px;color:#B76E79;opacity:.5"><use href="#line-rose"/></svg>
+        </div>
+        <div class="pauth__center">
+          <div class="pauth__center-logo"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#px-stone"/></svg><span>Princess</span></div>
+          <span class="pauth__rule"></span>
+          <p class="pauth__tagline pauth__tagline--en">Your princess treatment begins here</p>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</div>
+
+<!-- =================================================================
+     SVG SYMBOL LIBRARY  (define once; referenced via <use>)
+       #px-stone   — Princess jewel mark (baked rose-gold fills)
+       #line-rose  — fine line-art rose (single-weight stroke; uses currentColor)
+       #line-stem  — line-art stem + two leaves (currentColor)
+     Recolor a rose by setting `color:` on its <svg> wrapper.
+     ================================================================= -->
+<svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+  <symbol id="px-stone" viewBox="0 0 100 100">
+    <polygon points="50,12 37,33 28,50 50,50" fill="#E1B2A9"/><polygon points="50,12 50,50 72,50 63,33" fill="#B76E79"/><polygon points="50,50 28,50 37,67 50,88" fill="#B76E79"/><polygon points="50,50 50,88 63,67 72,50" fill="#84495A"/><polygon points="50,12 40,30 48,43 59,31" fill="#F2D6CB"/>
+    <g stroke="#5E3140" stroke-width=".8" stroke-opacity=".4" stroke-linecap="round"><line x1="50" y1="12" x2="50" y2="88"/><line x1="28" y1="50" x2="72" y2="50"/><line x1="37" y1="33" x2="50" y2="50"/><line x1="63" y1="33" x2="50" y2="50"/><line x1="37" y1="67" x2="50" y2="50"/><line x1="63" y1="67" x2="50" y2="50"/></g>
+    <polygon points="50,12 63,33 72,50 63,67 50,88 37,67 28,50 37,33" fill="none" stroke="#5E3140" stroke-width="1" stroke-opacity=".5" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="line-rose" viewBox="0 0 100 100">
+    <g fill="none" stroke="currentColor" stroke-width="1.7">
+      <!-- outer ring of rounded petals -->
+      <ellipse cx="50" cy="27" rx="11" ry="22"/>
+      <ellipse cx="50" cy="27" rx="11" ry="22" transform="rotate(60 50 50)"/>
+      <ellipse cx="50" cy="27" rx="11" ry="22" transform="rotate(120 50 50)"/>
+      <ellipse cx="50" cy="27" rx="11" ry="22" transform="rotate(180 50 50)"/>
+      <ellipse cx="50" cy="27" rx="11" ry="22" transform="rotate(240 50 50)"/>
+      <ellipse cx="50" cy="27" rx="11" ry="22" transform="rotate(300 50 50)"/>
+      <!-- inner ring (offset, smaller) -->
+      <ellipse cx="50" cy="39" rx="7" ry="13" transform="rotate(30 50 50)"/>
+      <ellipse cx="50" cy="39" rx="7" ry="13" transform="rotate(90 50 50)"/>
+      <ellipse cx="50" cy="39" rx="7" ry="13" transform="rotate(150 50 50)"/>
+      <ellipse cx="50" cy="39" rx="7" ry="13" transform="rotate(210 50 50)"/>
+      <ellipse cx="50" cy="39" rx="7" ry="13" transform="rotate(270 50 50)"/>
+      <ellipse cx="50" cy="39" rx="7" ry="13" transform="rotate(330 50 50)"/>
+      <circle cx="50" cy="50" r="5.5"/>
+    </g>
+  </symbol>
+  <symbol id="line-stem" viewBox="0 0 120 220">
+    <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M62 214 C 60 170 57 130 63 92 C 67 64 75 44 88 26"/>
+      <path d="M60 166 C 41 160 27 166 19 182 C 39 186 54 182 60 166 Z"/>
+      <path d="M63 124 C 82 116 98 122 106 138 C 86 144 69 140 63 124 Z"/>
+    </g>
+  </symbol>
+</defs></svg>
+
+</body>
+</html>

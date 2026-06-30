@@ -16,6 +16,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from "@/features/auth/components/auth-field-styles";
 import { localizeApiError, postJson } from "@/features/auth/client";
 import { RoleSelect } from "@/features/auth/components/RoleSelect";
 import { buildRegisterSchema, type RegisterInput } from "@/features/auth/schema";
@@ -74,12 +79,13 @@ export function RegisterForm() {
           name="full_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tf("fullName")}</FormLabel>
+              <FormLabel className={authLabelClass}>{tf("fullName")}</FormLabel>
               <FormControl>
                 <Input
                   autoComplete="name"
                   placeholder={tf("fullNamePlaceholder")}
                   data-testid="register-name"
+                  className={authInputClass}
                   {...field}
                 />
               </FormControl>
@@ -92,7 +98,7 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tf("email")}</FormLabel>
+              <FormLabel className={authLabelClass}>{tf("email")}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -100,6 +106,7 @@ export function RegisterForm() {
                   autoComplete="email"
                   placeholder={tf("emailPlaceholder")}
                   data-testid="register-email"
+                  className={authInputClass}
                   {...field}
                 />
               </FormControl>
@@ -112,13 +119,14 @@ export function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tf("password")}</FormLabel>
+              <FormLabel className={authLabelClass}>{tf("password")}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
                   autoComplete="new-password"
                   placeholder={tf("passwordPlaceholder")}
                   data-testid="register-password"
+                  className={authInputClass}
                   {...field}
                 />
               </FormControl>
@@ -131,7 +139,7 @@ export function RegisterForm() {
           name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tf("role")}</FormLabel>
+              <FormLabel className={authLabelClass}>{tf("role")}</FormLabel>
               <FormControl>
                 <RoleSelect
                   value={field.value}
@@ -145,8 +153,7 @@ export function RegisterForm() {
         />
         <Button
           type="submit"
-          size="lg"
-          className="mt-2 w-full"
+          className={authSubmitClass}
           disabled={isSubmitting}
           data-testid="register-submit"
         >

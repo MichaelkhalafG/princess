@@ -118,7 +118,11 @@ test.describe("auth flows", () => {
 
     await fillLogin(page, appLocale, email, "wrong-password-123");
 
-    await expect(page.getByText(messages.auth.errors.INVALID_CREDENTIALS)).toBeVisible();
+    // Target the visible toast (not Radix's hidden aria-live announce region,
+    // which also contains the text) so the match is unambiguous.
+    const toast = page.getByTestId("toast");
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText(messages.auth.errors.INVALID_CREDENTIALS);
     await expect(page).toHaveURL(loginUrl(appLocale));
   });
 
@@ -132,7 +136,9 @@ test.describe("auth flows", () => {
     // Same email again → blocked.
     await fillRegister(page, appLocale, messages, { email, role: "customer" });
 
-    await expect(page.getByText(messages.auth.errors.EMAIL_TAKEN)).toBeVisible();
+    const toast = page.getByTestId("toast");
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText(messages.auth.errors.EMAIL_TAKEN);
     await expect(page).toHaveURL(registerUrl(appLocale));
   });
 });

@@ -28,6 +28,9 @@
       "fullNamePlaceholder": "اسمك الكامل",
       "role": "نوع الحساب"
     },
+    "banner": {
+      "tagline": "تبدأ رحلتك الملكية من هنا"
+    },
     "login": {
       "title": "تسجيل الدخول",
       "subtitle": "أهلاً بعودتك إلى Princess",

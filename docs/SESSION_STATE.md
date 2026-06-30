@@ -34,7 +34,7 @@ REQ-AUTH-01..06 marked **In progress** in the matrix (DB foundation + RLS + sess
 2. **Vercel PREVIEW deploy** with the env list in PHASE_0_ACCEPTANCE §3.1 (sandbox keys; server-only vars NOT `NEXT_PUBLIC_`); run the §3.4 acceptance checklist on the preview URL.
 3. On **green**, confirm → I `git init`, branch, commit (Phase-0 REQ-IDs) + tag `phase-0`. **No commit before that.**
 
-**Then Phase 1 — catalog & storage** (products, filters, detail, seller CRUD, Supabase Storage buckets). Do NOT start until triggered.
+**Then Phase 1 — catalog & storage** (products, filters, detail, seller CRUD, Supabase Storage buckets). Task pack **FINAL**: `docs/Phasses prompt's/PHASE_1_TASKS.md` (8 tasks, `0003_catalog.sql`). Decisions D1–D5 + both defaults **APPROVED** (URL filter state · offset pagination · server `/api/upload` with RLS · in-house typed `DataTable<T>` · tag-based catalog cache). Image limits live in one constant `lib/constants.ts` `PRODUCT_IMAGE_LIMITS` (6→8 = one-line change). **Sequencing: user is closing Phase 0 (Task 0.11) FIRST**, then triggers Task 1.1. Do NOT start Phase 1 until triggered.
 
 **Phase 2 carry-forward from the Tap spike** (`docs/SPIKE_NOTES.md`): confirm the webhook hashstring secret via a delivered sandbox webhook (public `post.url`/ngrok) and align `verifyWebhook` (`TAP_WEBHOOK_SECRET` vs `TAP_SECRET_KEY`); build `/payment/callback` (redirect.url) + webhook handler at `/api/payments/webhook` (post.url); don't assume merchant/currency from the shared sandbox account (599424/KWD) — ours comes with our keys. Then 0.10 (shared primitives Navbar/Footer/LocaleSwitcher/RoleGuard — uses `public/logo.svg`), 0.11 (Phase 0 DoD gate).
 

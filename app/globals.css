@@ -69,3 +69,22 @@
     stroke-width: 1.75;
   }
 }
+
+@layer components {
+  /* Auth banner — layered warm gradient (one-off background, DESIGN_RULES §2.3/§15
+     exception). Token-based color stops (peach-soft → peach → champagne + a
+     rose-gold bloom + an ivory glow). RTL mirrors the horizontal anchors so the
+     light stays on the outer edge. */
+  .auth-banner {
+    background:
+      radial-gradient(120% 70% at 22% 6%, hsl(var(--card)) 0%, hsl(var(--card) / 0) 52%),
+      radial-gradient(90% 80% at 96% 104%, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0) 58%),
+      linear-gradient(157deg, hsl(var(--muted)) 0%, hsl(var(--secondary)) 58%, hsl(var(--accent)) 100%);
+  }
+  [dir="rtl"] .auth-banner {
+    background:
+      radial-gradient(120% 70% at 78% 6%, hsl(var(--card)) 0%, hsl(var(--card) / 0) 52%),
+      radial-gradient(90% 80% at 4% 104%, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0) 58%),
+      linear-gradient(203deg, hsl(var(--muted)) 0%, hsl(var(--secondary)) 58%, hsl(var(--accent)) 100%);
+  }
+}

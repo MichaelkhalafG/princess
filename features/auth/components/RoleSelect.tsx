@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { authInputClass } from "@/features/auth/components/auth-field-styles";
 import { REGISTER_ROLES, type RegisterRole } from "@/features/auth/schema";
 
 interface RoleSelectProps {
@@ -32,7 +33,7 @@ export function RoleSelect({ value, onChange, disabled }: RoleSelectProps) {
         onValueChange={(next) => onChange(next as RegisterRole)}
         disabled={disabled}
       >
-        <SelectTrigger aria-label={t("label")} data-testid="register-role">
+        <SelectTrigger aria-label={t("label")} data-testid="register-role" className={authInputClass}>
           <SelectValue placeholder={t("placeholder")} />
         </SelectTrigger>
         <SelectContent>

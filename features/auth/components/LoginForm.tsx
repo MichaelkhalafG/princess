@@ -16,6 +16,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from "@/features/auth/components/auth-field-styles";
 import { buildLoginSchema, type LoginInput } from "@/features/auth/schema";
 import { localizeApiError, postJson } from "@/features/auth/client";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -69,7 +74,7 @@ export function LoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tf("email")}</FormLabel>
+              <FormLabel className={authLabelClass}>{tf("email")}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -77,6 +82,7 @@ export function LoginForm() {
                   autoComplete="email"
                   placeholder={tf("emailPlaceholder")}
                   data-testid="login-email"
+                  className={authInputClass}
                   {...field}
                 />
               </FormControl>
@@ -89,12 +95,13 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tf("password")}</FormLabel>
+              <FormLabel className={authLabelClass}>{tf("password")}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
                   autoComplete="current-password"
                   data-testid="login-password"
+                  className={authInputClass}
                   {...field}
                 />
               </FormControl>
@@ -104,8 +111,7 @@ export function LoginForm() {
         />
         <Button
           type="submit"
-          size="lg"
-          className="mt-2 w-full"
+          className={authSubmitClass}
           disabled={isSubmitting}
           data-testid="login-submit"
         >
