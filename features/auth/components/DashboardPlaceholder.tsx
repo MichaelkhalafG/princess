@@ -1,18 +1,23 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { PendingApprovalBanner } from "@/features/auth/components/PendingApprovalBanner";
 import type { Profile } from "@/features/auth/queries";
 
 /**
- * Minimal role dashboard landing (Task 0.7). The full role-aware DashboardShell
- * (sidebar, topbar, RoleGuard, widgets) lands in Task 0.10 / Phase 1 — this is
- * the redirect target after login/register and the home for the pending state.
- *
- * Pending sellers/providers (status `pending`) see the awaiting-approval banner;
- * listing actions don't exist yet, so there is nothing to disable here (REQ-AUTH-05).
+ * Role dashboard shell — header (welcome + logout) + body. Pending sellers/providers
+ * see the awaiting-approval banner and nothing else (REQ-AUTH-05). Active roles get
+ * `children` (e.g. the seller ProductManager); roles without dashboard content yet
+ * fall back to the placeholder line.
  */
-export async function DashboardPlaceholder({ profile }: { profile: Profile }) {
+export async function DashboardPlaceholder({
+  profile,
+  children,
+}: {
+  profile: Profile;
+  children?: ReactNode;
+}) {
   const t = await getTranslations("dashboard");
 
   const isPending =
@@ -33,9 +38,11 @@ export async function DashboardPlaceholder({ profile }: { profile: Profile }) {
         <LogoutButton />
       </header>
 
-      {isPending ? <PendingApprovalBanner /> : null}
-
-      <p className="text-body text-muted-foreground">{t("placeholder")}</p>
+      {isPending ? (
+        <PendingApprovalBanner />
+      ) : (
+        children ?? <p className="text-body text-muted-foreground">{t("placeholder")}</p>
+      )}
     </div>
   );
 }

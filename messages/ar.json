@@ -112,6 +112,97 @@
       "cta": "العودة إلى الرئيسية"
     }
   },
+  "products": {
+    "title": "المنتجات",
+    "empty": "لا توجد منتجات تطابق بحثك."
+  },
+  "seller": {
+    "products": "منتجاتي",
+    "addProduct": "إضافة منتج",
+    "noProductsTitle": "لا توجد منتجات بعد",
+    "noProductsHint": "أضيفي أول منتج لكِ لبدء البيع.",
+    "edit": "تعديل المنتج",
+    "delete": "حذف المنتج",
+    "deleteTitle": "حذف المنتج؟",
+    "deleteBody": "سيؤدي هذا إلى حذف ”{title}“ نهائياً. لا يمكن التراجع.",
+    "deleteConfirm": "حذف",
+    "col": {
+      "image": "الصورة",
+      "title": "العنوان",
+      "price": "السعر",
+      "stock": "المخزون",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "form": {
+      "newTitle": "منتج جديد",
+      "editTitle": "تعديل المنتج",
+      "title": "العنوان",
+      "description": "الوصف",
+      "category": "الفئة",
+      "categoryNone": "بدون فئة",
+      "price": "السعر",
+      "currency": "العملة",
+      "stock": "المخزون",
+      "status": "الحالة",
+      "rentable": "متاح للإيجار",
+      "yes": "نعم",
+      "no": "لا",
+      "rentalDailyPrice": "سعر الإيجار اليومي",
+      "securityDeposit": "مبلغ التأمين",
+      "images": "الصور",
+      "variants": "الخيارات",
+      "addVariant": "إضافة خيار",
+      "removeVariant": "إزالة الخيار",
+      "size": "المقاس",
+      "color": "اللون",
+      "variantStock": "المخزون",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "toast": {
+      "created": "تم إنشاء المنتج",
+      "updated": "تم تحديث المنتج",
+      "deleted": "تم حذف المنتج",
+      "error": "حدث خطأ ما. حاولي مرة أخرى."
+    }
+  },
+  "catalog": {
+    "addToCart": "أضيفي إلى الحقيبة",
+    "size": "المقاس",
+    "color": "اللون",
+    "reviews": "التقييمات",
+    "noReviews": "لا توجد تقييمات بعد.",
+    "viewImage": "عرض الصورة {number}"
+  },
+  "filters": {
+    "title": "عوامل التصفية",
+    "category": "الفئة",
+    "allCategories": "كل الفئات",
+    "minPrice": "أقل سعر",
+    "maxPrice": "أعلى سعر",
+    "sortLabel": "الترتيب حسب",
+    "sort": {
+      "newest": "الأحدث",
+      "price_asc": "السعر: من الأقل للأعلى",
+      "price_desc": "السعر: من الأعلى للأقل",
+      "top_rated": "الأعلى تقييماً"
+    },
+    "clear": "مسح الكل",
+    "done": "تم"
+  },
+  "status": {
+    "draft": "مسودة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "rejected": "مرفوض"
+  },
+  "pagination": {
+    "label": "ترقيم الصفحات",
+    "previous": "السابق",
+    "next": "التالي",
+    "goToPage": "الذهاب إلى الصفحة {page}"
+  },
   "upload": {
     "addImages": "أضيفي صوراً",
     "dropHint": "اسحبي وأفلتي، أو انقري للرفع",

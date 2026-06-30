@@ -110,7 +110,7 @@ export function ImageUploader({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" data-testid="image-uploader">
       {value.length > 0 ? (
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {value.map((img, index) => (
@@ -206,6 +206,7 @@ export function ImageUploader({
             accept={ACCEPT}
             multiple
             hidden
+            data-testid="image-uploader-input"
             disabled={busy}
             onChange={(event) => {
               void handleFiles(event.target.files);

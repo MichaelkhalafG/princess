@@ -24,6 +24,10 @@ export interface AuthMessages {
     pending: { title: string };
     errors: { INVALID_CREDENTIALS: string; EMAIL_TAKEN: string };
   };
+  products: { title: string; empty: string };
+  filters: { sort: { newest: string; price_asc: string } };
+  status: { active: string };
+  seller: { products: string };
 }
 
 const catalogs: Record<AppLocale, AuthMessages> = { ar: arMessages, en: enMessages };

@@ -112,6 +112,97 @@
       "cta": "Back to home"
     }
   },
+  "products": {
+    "title": "Products",
+    "empty": "No products match your filters."
+  },
+  "seller": {
+    "products": "My products",
+    "addProduct": "Add product",
+    "noProductsTitle": "No products yet",
+    "noProductsHint": "Add your first product to start selling.",
+    "edit": "Edit product",
+    "delete": "Delete product",
+    "deleteTitle": "Delete product?",
+    "deleteBody": "This permanently removes “{title}”. This can't be undone.",
+    "deleteConfirm": "Delete",
+    "col": {
+      "image": "Image",
+      "title": "Title",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "newTitle": "New product",
+      "editTitle": "Edit product",
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "categoryNone": "Uncategorized",
+      "price": "Price",
+      "currency": "Currency",
+      "stock": "Stock",
+      "status": "Status",
+      "rentable": "Available to rent",
+      "yes": "Yes",
+      "no": "No",
+      "rentalDailyPrice": "Daily rental price",
+      "securityDeposit": "Security deposit",
+      "images": "Images",
+      "variants": "Variants",
+      "addVariant": "Add variant",
+      "removeVariant": "Remove variant",
+      "size": "Size",
+      "color": "Color",
+      "variantStock": "Stock",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "created": "Product created",
+      "updated": "Product updated",
+      "deleted": "Product deleted",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "catalog": {
+    "addToCart": "Add to bag",
+    "size": "Size",
+    "color": "Color",
+    "reviews": "Reviews",
+    "noReviews": "No reviews yet.",
+    "viewImage": "View image {number}"
+  },
+  "filters": {
+    "title": "Filters",
+    "category": "Category",
+    "allCategories": "All categories",
+    "minPrice": "Min price",
+    "maxPrice": "Max price",
+    "sortLabel": "Sort by",
+    "sort": {
+      "newest": "Newest",
+      "price_asc": "Price: low to high",
+      "price_desc": "Price: high to low",
+      "top_rated": "Top rated"
+    },
+    "clear": "Clear all",
+    "done": "Done"
+  },
+  "status": {
+    "draft": "Draft",
+    "active": "Active",
+    "inactive": "Inactive",
+    "rejected": "Rejected"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "goToPage": "Go to page {page}"
+  },
   "upload": {
     "addImages": "Add images",
     "dropHint": "Drag & drop, or click to upload",

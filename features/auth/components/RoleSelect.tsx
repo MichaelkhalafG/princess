@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -11,19 +12,29 @@ import {
 } from "@/components/ui/select";
 import { authInputClass } from "@/features/auth/components/auth-field-styles";
 import { REGISTER_ROLES, type RegisterRole } from "@/features/auth/schema";
+import { cn } from "@/lib/utils";
 
-interface RoleSelectProps {
+interface RoleSelectProps
+  extends Omit<React.ComponentPropsWithoutRef<typeof SelectTrigger>, "onChange" | "value"> {
   value: RegisterRole | undefined;
   onChange: (value: RegisterRole) => void;
-  disabled?: boolean;
 }
 
 /**
  * Account-type picker for registration (COMPONENT_TREE §1) — customer / seller /
  * provider only (admin is not self-registerable). Radix Select keeps a11y; the
  * selected role's description renders below to build trust at the choice point.
+ *
+ * `forwardRef` + prop spread is REQUIRED: this renders inside shadcn's `FormControl`,
+ * a Radix `Slot` that injects `ref` + `id`/`aria-describedby`/`aria-invalid` onto its
+ * child. A plain function component drops them (and logs "Function components cannot
+ * be given refs"), so the trigger loses its `id` (the `<FormLabel htmlFor>` + focus
+ * target) and error wiring. We forward all of it onto the real `SelectTrigger`.
  */
-export function RoleSelect({ value, onChange, disabled }: RoleSelectProps) {
+export const RoleSelect = forwardRef<
+  React.ElementRef<typeof SelectTrigger>,
+  RoleSelectProps
+>(function RoleSelect({ value, onChange, disabled, className, ...triggerProps }, ref) {
   const t = useTranslations("auth.roles");
 
   return (
@@ -33,7 +44,13 @@ export function RoleSelect({ value, onChange, disabled }: RoleSelectProps) {
         onValueChange={(next) => onChange(next as RegisterRole)}
         disabled={disabled}
       >
-        <SelectTrigger aria-label={t("label")} data-testid="register-role" className={authInputClass}>
+        <SelectTrigger
+          ref={ref}
+          aria-label={t("label")}
+          data-testid="register-role"
+          className={cn(authInputClass, className)}
+          {...triggerProps}
+        >
           <SelectValue placeholder={t("placeholder")} />
         </SelectTrigger>
         <SelectContent>
@@ -49,4 +66,4 @@ export function RoleSelect({ value, onChange, disabled }: RoleSelectProps) {
       ) : null}
     </div>
   );
-}
+});

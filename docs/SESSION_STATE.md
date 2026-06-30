@@ -1,12 +1,14 @@
 # SESSION_STATE.md — resume note
 
-> Scratch hand-off so work can resume exactly where it stopped. Last updated: **2026-06-28**.
+> Scratch hand-off so work can resume exactly where it stopped. Last updated: **2026-06-30**.
 > Authoritative planning docs: `REQUIREMENTS_MATRIX.md` (the law), `DATABASE.md`, `IMPLEMENTATION_PLAN.md`, `CLAUDE_RULES.md`, `DESIGN_RULES.md`, `ENV_SETUP.md`.
 
 ## Where we are
 **Phase 0 (Foundation) — ✅ COMPLETE (gate PASSED 2026-06-30).** Live-verified: typecheck + lint clean, E2E 16/16, RLS smoke confirmed, green deploy at `princess-woad.vercel.app` (7/7 acceptance). Built: REQ-AUTH-01..06, REQ-NFR-01/02/03/05/07/08/10/11, REQ-PAY-06/07. Deferred (foundation built, scheduled): REQ-PAY-01→Phase 2, REQ-NOT-01→Phase 5. `docs/PHASE_0_ACCEPTANCE.md` finalized. **Git commit + tag `phase-0` handled by the user.** ⚠️ Deploy is Production-from-`main` with **sandbox/placeholder keys** — real launch = Phase 7.
 
-**Next: Phase 1 — Catalog & Storage.** Task pack final at `docs/Phasses prompt's/PHASE_1_TASKS.md` (8 tasks, decisions D1–D5 approved, `0003_catalog.sql`). Trigger **Task 1.1** when ready.
+**Phase 1 (Catalog & Storage) — ⏳ DoD prepared, awaiting the user's live E2E + Vercel preview.** Tasks 1.1–1.8 done; sandbox gate green (typecheck + lint clean, vitest 29 passed/19 skipped, 26 E2E compile). Built: REQ-PROD-01..06, REQ-NFR-12. REQ-NFR-04 In progress (catalog caching/CLS done). Deferred: REQ-DASH-05 admin CategoryManager UI → Phase 5 (categories API built + consumed read-only). `docs/PHASE_1_ACCEPTANCE.md` produced. Throwaway dev upload-test harness **deleted**. **Remaining to close: the user runs `pnpm test:e2e` (expect 24 passed / 2 seller-opt-in skipped) + a green Vercel preview (§3 checklist), then commit + tag `phase-1`.**
+
+**Next: Phase 2 — Cart, Orders & Checkout (Tap intent + COD).** See carry-forwards below.
 
 | Task | What | Status |
 |------|------|--------|
@@ -33,14 +35,26 @@ REQ-AUTH-01..06 marked **In progress** in the matrix (DB foundation + RLS + sess
 ## What's next
 **Phase 0 is COMPLETE** (gate passed live; see "Where we are" + `docs/PHASE_0_ACCEPTANCE.md`). The user is doing the git commit + tag `phase-0`.
 
-**Phase 1 — Catalog & Storage** in progress. Task pack: `docs/Phasses prompt's/PHASE_1_TASKS.md` (8 tasks; D1–D5 + defaults approved; image limits → `lib/constants.ts PRODUCT_IMAGE_LIMITS`).
+**Phase 1 — Catalog & Storage** — all 8 tasks built; **DoD prepared, awaiting the user's live E2E + preview** (see `docs/PHASE_1_ACCEPTANCE.md`). Task pack: `docs/Phasses prompt's/PHASE_1_TASKS.md`.
 - ✅ **1.1 done & applied:** `0003_catalog.sql` live (categories/products/product_variants, indexes, RLS public-read-`active`/owner-CRUD, 5 product categories seeded); `db:types` regenerated; typecheck clean.
-- **Next: Task 1.2** — Storage `products` bucket + Storage RLS · `POST /api/upload` (user-session client, RLS-enforced, validates against `PRODUCT_IMAGE_LIMITS`) · `lib/storage/buckets.ts` · `useUpload` · `ImageUploader` (reusable). Trigger when ready.
+- ✅ **1.2 verified PASS (live):** `products` bucket + Storage RLS applied (dashboard SQL `supabase/storage/products_bucket.sql`); `/api/upload` (RLS via user session, no service-role) + `useUpload` + reusable `ImageUploader` + `lib/constants.ts PRODUCT_IMAGE_LIMITS`. Live: 6 imgs under `products/{uid}/…`, public URLs render, `{url,alt,sort}` shape correct, guards BAD_FILE/TOO_LARGE/401, E2E 16/16. Throwaway dev harness `app/[locale]/dev/upload-test/` **deleted at Phase 1 close (1.8)**.
+- ✅ **1.3 done:** `lib/money.ts` (+5 unit tests) · `Money`/`PriceTag`/`StatusBadge`/`Pagination`/`ProductCardSkeleton`.
+- ✅ **1.4 done:** `useFilters` (URL state, debounced price, page-reset) · `FilterBar` (mobile Sheet) · generic `DataTable<T>`.
+- ✅ **1.5 done:** `getCategories` (cached, tag `categories`, `lib/supabase/public.ts`) · `GET/PUT /api/admin/categories` (admin-gated; PUT service-role + revalidate). Admin CategoryManager UI deferred → admin phase.
+- ✅ **1.6 done (sandbox gate; awaiting browser/E2E verify):** `features/catalog/{schema,queries,images}` (cached `listProducts`/`getProductById`, tags `products`/`product:{id}`) · `GET /api/products` + `GET /api/products/:id` · `/products` (RSC FilterBar+ProductGrid+ProductCard+Pagination, Suspense skeleton, EmptyState) + `/products/[id]` (ProductGallery, VariantSelector, serif PriceTag, generateMetadata). Pages live in the **`(marketing)` group** for the Navbar/Footer shell. Category filter = category_id in URL.
+- ✅ **1.7 done (sandbox gate; awaiting browser verify):** seller product CRUD. `features/catalog/schema.ts productSchema` (number-based; seller-settable statuses only — `rejected` is admin-set) + `mutations.ts` (`createProduct`/`updateProduct`/`deleteProduct` via cookie server client; **`seller_id` from session, never the body**; ownership re-check select→404/403 **on top of** RLS; variant full-replace; `revalidateTag` products + `product:{id}`) · `POST /api/products` (seller-role **+ active** gate, REQ-AUTH-05) + `PUT/DELETE /api/products/:id` (owner gate) · `getMyProducts()` (session client, `*, product_variants(*)` → `SellerProduct[]`) · `ProductManager` (DataTable + edit Sheet + delete ConfirmDialog) + `ProductForm` (RHF/zodResolver, ImageUploader, variants `useFieldArray`) · seller dashboard renders ProductManager only for active sellers, else PendingApprovalBanner. zodResolver input/output divergence (schema `.default()`/`.refine()`) resolved via `as Resolver<ProductInput>`. Seller-isolation RLS test stub `tests/integration/products-rls.test.ts` (opt-in `RLS_TEST=1`, 10 tests: anon-insert denied, seller_id spoof denied, draft invisible to anon/other, B can't update/delete A's row, A full CRUD). Gate: typecheck + lint clean; vitest 29 passed / 19 skipped (live suites skip). **Browser verify pending** (steps below).
+- ✅ **1.8 done — Phase 1 DoD gate (prepared; awaiting the user's live run):** `tests/e2e/catalog.spec.ts` (public browse/render/RTL + filter+sort→URL + detail + no-console-errors, ar+en, empty-safe; opt-in seller add-with-image via `tests/e2e/seller.ts` service-role seed + auto teardown) · `data-testid`s on FilterBar/ProductCard/ProductForm/ImageUploader/ProductManager · RLS owner-only `tests/integration/products-rls.test.ts` (opt-in) + SQL smoke `tests/integration/products.rls-smoke.md` · matrix reconciled (REQ-PROD-01..06 Built, NFR-12 Built, NFR-04 In progress, DASH-05 deferred→Phase 5) · `docs/PHASE_1_ACCEPTANCE.md` produced · **deleted** `app/[locale]/dev/upload-test/`. Gate: typecheck + lint clean; 26 E2E compile; vitest 29/19.
+
+### To close Phase 1 (the user runs — Claude can't reach DB/dev/deploy)
+1. `pnpm test:e2e` → expect **24 passed / 2 skipped** (seller opt-in). For the seller flow: `E2E_SELLER=1 pnpm test:e2e catalog` (needs `SUPABASE_SERVICE_ROLE_KEY` + `products` bucket) → **26 passed**.
+2. Optional DB-layer RLS: `RLS_TEST=1 pnpm test products-rls` (10 passed) or the SQL block in `products.rls-smoke.md`.
+3. Vercel **preview** + the §3.3 checklist in `PHASE_1_ACCEPTANCE.md` (no new env vars; confirm the `products` bucket exists in the linked project).
+4. Then commit + tag `phase-1`. E2E teardown: `delete from auth.users where email like '%@e2e.princess.test';` (cascades products; storage objects for seeded sellers are auto-removed by the test, else clear `storage.objects` for `bucket_id='products'`).
 - Standing workflow unchanged (Claude writes code+migrations + typecheck/lint; user runs `db push`/`db:types`/`dev`/`test:e2e`).
 
 **Phase 2 carry-forward from the Tap spike** (`docs/SPIKE_NOTES.md`): confirm the webhook hashstring secret via a delivered sandbox webhook (public `post.url`/ngrok) and align `verifyWebhook` (`TAP_WEBHOOK_SECRET` vs `TAP_SECRET_KEY`); build `/payment/callback` (redirect.url) + webhook handler at `/api/payments/webhook` (post.url); don't assume merchant/currency from the shared sandbox account (599424/KWD) — ours comes with our keys. Then 0.10 (shared primitives Navbar/Footer/LocaleSwitcher/RoleGuard — uses `public/logo.svg`), 0.11 (Phase 0 DoD gate).
 
-**Verifying tasks from here on:** auth (and future flows) are covered by `pnpm test:e2e` (auto-starts `pnpm dev`; green = 16/16, ar+en). Extend `tests/e2e/*` as new flows land rather than hand-testing. E2E users use unique `…@e2e.princess.test` emails; teardown: `delete from auth.users where email like '%@e2e.princess.test';`.
+**Verifying tasks from here on:** flows are covered by `pnpm test:e2e` (auto-starts `pnpm dev`, ar+en). After Phase 1: green = **24 passed / 2 skipped** (auth 8×2 + catalog public 4×2; the 2 seller tests are opt-in via `E2E_SELLER=1` → 26). Extend `tests/e2e/*` as new flows land rather than hand-testing. E2E users use unique `…@e2e.princess.test` emails; teardown: `delete from auth.users where email like '%@e2e.princess.test';`.
 
 ## Standing workflow
 Sandbox limits: **cannot reach Postgres** (DNS/5432 egress blocked; only HTTPS) and **cannot run `pnpm dev`** (Google Fonts egress blocked). So:
@@ -50,7 +64,7 @@ Sandbox limits: **cannot reach Postgres** (DNS/5432 egress blocked; only HTTPS) 
 - **Secrets rule:** you NEVER paste DB passwords or PATs into chat. (The 0.3 DB password that was shared earlier should still be rotated — see below.) typecheck+lint passing is necessary but NOT sufficient — runtime bugs (e.g. 0.5) only surface in `pnpm dev`.
 
 ## ⚠️ Not committed yet
-**No git commit has been made.** Uncommitted work spans **Tasks 0.1–0.10** (scaffold, Supabase wiring, migrations 0001+0002 + generated types, i18n/RTL shell, composed middleware, auth routes/forms/dashboards, Vitest + Playwright E2E, payment/notification provider abstractions, Tap spike, shared Navbar/Footer/primitives + marketing shell — `@playwright/test` + `tsx` in `package.json`/lockfile, planning docs). When ready to commit, branch first (repo not initialized yet) and reference the Phase-0 REQ-IDs.
+**Git commit + tag are the user's to do.** Per `git log`, Phase 0 was committed (3 commits through `b0aaad3`); **all Phase 1 work (Tasks 1.1–1.8) is uncommitted** — catalog migration 0003 + storage SQL + regenerated types, money/display primitives, useFilters/FilterBar/DataTable, categories API, public browse pages + queries, seller CRUD (schema/mutations/routes/ProductManager/ProductForm), catalog E2E + seller fixture + fixture PNG, RLS integration test + SQL smoke, docs. Commit on the user's explicit confirm (reference Phase-1 REQ-IDs); tag `phase-1` after E2E + preview are green.
 
 ## Brand assets (ready for Task 0.10)
 Final logo = **Version C (Rose Jewel)**, confirmed 2026-06-29. Production copies in `public/`: `logo.svg` (horizontal → Navbar), `logo-stacked.svg` (Footer/auth), `icon.svg` (mark), `favicon.svg` (wired in layout `metadata.icons`). Source archive `./logo/` also holds `-reversed` (dark-bg) and `-mono-*` (single-colour) alternates — pull into `public/` when dark mode (Phase 2) / mono use arrives. See memory `brand-logo-assets`.

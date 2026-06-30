@@ -1,0 +1,134 @@
+"use client";
+
+import { useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+
+import { usePathname, useRouter } from "@/i18n/navigation";
+
+/** Catalog sort options (must match the read query in Task 1.6 + indexes in 1.1). */
+export const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "top_rated"] as const;
+export type SortOption = (typeof SORT_OPTIONS)[number];
+
+export const DEFAULT_LIMIT = 20;
+
+export interface CatalogFilters {
+  category: string | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  sort: SortOption;
+  page: number;
+  limit: number;
+}
+
+function parseSort(value: string | null): SortOption {
+  return (SORT_OPTIONS as readonly string[]).includes(value ?? "") ? (value as SortOption) : "newest";
+}
+
+function parseNonNegativeInt(value: string | null): number | null {
+  if (value === null || value.trim() === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;
+}
+
+/**
+ * Catalog filters as URL searchParams — the SINGLE source of truth (Decision D1).
+ * Reads parsed/typed values; setters write via the locale-aware router. Any filter
+ * change resets `page` to 1; `setPrice` is debounced 300ms (DESIGN_RULES §11).
+ */
+export function useFilters() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Always read the latest params (so the debounced price write never clobbers a
+  // concurrent category/sort change).
+  const paramsRef = useRef(searchParams);
+  paramsRef.current = searchParams;
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const limitRaw = Number(searchParams.get("limit"));
+  const filters: CatalogFilters = {
+    category: searchParams.get("category"),
+    minPrice: parseNonNegativeInt(searchParams.get("minPrice")),
+    maxPrice: parseNonNegativeInt(searchParams.get("maxPrice")),
+    sort: parseSort(searchParams.get("sort")),
+    page: ((): number => {
+      const n = Number(searchParams.get("page"));
+      return Number.isInteger(n) && n >= 1 ? n : 1;
+    })(),
+    limit: Number.isInteger(limitRaw) && limitRaw > 0 ? limitRaw : DEFAULT_LIMIT,
+  };
+
+  const commit = useCallback(
+    (mutate: (params: URLSearchParams) => void, resetPage = true) => {
+      const params = new URLSearchParams(paramsRef.current.toString());
+      mutate(params);
+      if (resetPage) params.delete("page");
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    },
+    [router, pathname],
+  );
+
+  const setParam = useCallback(
+    (key: string, value: string | null) => {
+      commit((params) => {
+        if (value === null || value === "") params.delete(key);
+        else params.set(key, value);
+      });
+    },
+    [commit],
+  );
+
+  const setCategory = useCallback((value: string | null) => setParam("category", value), [setParam]);
+  // 'newest' is the default → omit from the URL for clean links.
+  const setSort = useCallback(
+    (value: SortOption) => setParam("sort", value === "newest" ? null : value),
+    [setParam],
+  );
+  const setPage = useCallback(
+    (page: number) => commit((params) => {
+      if (page <= 1) params.delete("page");
+      else params.set("page", String(page));
+    }, false),
+    [commit],
+  );
+
+  const setPrice = useCallback(
+    (next: { minPrice?: number | null; maxPrice?: number | null }) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        commit((params) => {
+          if ("minPrice" in next) {
+            const v = next.minPrice;
+            if (v === null || v === undefined) params.delete("minPrice");
+            else params.set("minPrice", String(v));
+          }
+          if ("maxPrice" in next) {
+            const v = next.maxPrice;
+            if (v === null || v === undefined) params.delete("maxPrice");
+            else params.set("maxPrice", String(v));
+          }
+        });
+      }, 300);
+    },
+    [commit],
+  );
+
+  const clear = useCallback(() => router.replace(pathname), [router, pathname]);
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  const isActive =
+    filters.category !== null ||
+    filters.minPrice !== null ||
+    filters.maxPrice !== null ||
+    filters.sort !== "newest";
+
+  return { ...filters, isActive, setCategory, setSort, setPrice, setPage, clear };
+}
