@@ -13,7 +13,9 @@
     "format": "prettier --write .",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
-    "spike:tap": "tsx --tsconfig scripts/tsconfig.json scripts/tap-spike.ts"
+    "spike:tap": "tsx --tsconfig scripts/tsconfig.json scripts/tap-spike.ts",
+    "seed:dummy": "tsx --tsconfig scripts/tsconfig.json scripts/seed-dummy.ts",
+    "seed:reset": "tsx --tsconfig scripts/tsconfig.json scripts/seed-dummy.ts --reset"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

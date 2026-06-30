@@ -135,13 +135,15 @@ test.describe("seller adds a product (opt-in)", () => {
     await page.getByTestId("product-price").fill("199");
     await page.getByTestId("product-stock").fill("5");
 
-    // Status → active (so it is publicly listed).
+    // Status → active (so it is publicly listed). Exact match: "Active" is a
+    // substring of "Inactive" (and "نشط" of "غير نشط") → ambiguous without it.
     await page.getByTestId("product-status").click();
-    await page.getByRole("option", { name: messages.status.active }).click();
+    await page.getByRole("option", { name: messages.status.active, exact: true }).click();
 
     // Upload an image (real /api/upload → Supabase Storage, RLS-scoped to the seller).
+    // The preview <img> has alt="" (presentational → no "img" role), so match by tag.
     await page.getByTestId("image-uploader-input").setInputFiles(SAMPLE_IMAGE);
-    await expect(page.getByTestId("image-uploader").getByRole("img").first()).toBeVisible();
+    await expect(page.getByTestId("image-uploader").locator("img").first()).toBeVisible();
 
     // Submit → manager refreshes and shows the new product.
     await page.getByTestId("product-submit").click();

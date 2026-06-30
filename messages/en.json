@@ -110,6 +110,11 @@
       "title": "This page isn't available to you",
       "description": "You don't have permission to view this section with your current account.",
       "cta": "Back to home"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or may have moved.",
+      "cta": "Back to home"
     }
   },
   "products": {
