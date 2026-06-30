@@ -112,6 +112,20 @@
       "cta": "العودة إلى الرئيسية"
     }
   },
+  "upload": {
+    "addImages": "أضيفي صوراً",
+    "dropHint": "اسحبي وأفلتي، أو انقري للرفع",
+    "hint": "JPEG أو PNG أو WebP · حتى {max} صور · {size} ميجابايت كحد أقصى لكل صورة",
+    "uploading": "جارٍ الرفع…",
+    "remove": "إزالة الصورة",
+    "moveEarlier": "تقديم",
+    "moveLater": "تأخير",
+    "cover": "الغلاف",
+    "maxReached": "يمكنك رفع حتى {max} صور.",
+    "tooLarge": "{name} أكبر من {size} ميجابايت.",
+    "badType": "{name} ليس نوع صورة مدعوماً.",
+    "failed": "تعذّر الرفع. حاولي مرة أخرى."
+  },
   "home": {
     "brand": "Princess",
     "eyebrow": "تسوّقي · استأجري · احجزي",

@@ -39,6 +39,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          id: string
+          kind: string
+          name_ar: string
+          name_en: string
+          parent_id: string | null
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          kind: string
+          name_ar: string
+          name_en: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          kind?: string
+          name_ar?: string
+          name_en?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           commission_products: number
@@ -106,6 +144,116 @@ export type Database = {
           },
         ]
       }
+      product_variants: {
+        Row: {
+          color: string | null
+          id: string
+          product_id: string
+          size: string | null
+          sku: string | null
+          stock: number
+        }
+        Insert: {
+          color?: string | null
+          id?: string
+          product_id: string
+          size?: string | null
+          sku?: string | null
+          stock?: number
+        }
+        Update: {
+          color?: string | null
+          id?: string
+          product_id?: string
+          size?: string | null
+          sku?: string | null
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          avg_rating: number
+          category_id: string | null
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          description: string | null
+          id: string
+          images: Json
+          is_rentable: boolean
+          price: number
+          rental_daily_price: number | null
+          security_deposit: number | null
+          seller_id: string
+          status: Database["public"]["Enums"]["listing_status"]
+          stock: number
+          title: string
+          total_reviews: number
+          updated_at: string
+        }
+        Insert: {
+          avg_rating?: number
+          category_id?: string | null
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          description?: string | null
+          id?: string
+          images?: Json
+          is_rentable?: boolean
+          price: number
+          rental_daily_price?: number | null
+          security_deposit?: number | null
+          seller_id: string
+          status?: Database["public"]["Enums"]["listing_status"]
+          stock?: number
+          title: string
+          total_reviews?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_rating?: number
+          category_id?: string | null
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          description?: string | null
+          id?: string
+          images?: Json
+          is_rentable?: boolean
+          price?: number
+          rental_daily_price?: number | null
+          security_deposit?: number | null
+          seller_id?: string
+          status?: Database["public"]["Enums"]["listing_status"]
+          stock?: number
+          title?: string
+          total_reviews?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -157,6 +305,7 @@ export type Database = {
     }
     Enums: {
       currency_code: "SAR" | "EGP"
+      listing_status: "draft" | "active" | "inactive" | "rejected"
       profile_status: "pending" | "active" | "suspended" | "rejected"
       provider_type: "freelancer" | "center"
       user_role: "customer" | "seller" | "provider" | "admin"
@@ -291,6 +440,7 @@ export const Constants = {
   public: {
     Enums: {
       currency_code: ["SAR", "EGP"],
+      listing_status: ["draft", "active", "inactive", "rejected"],
       profile_status: ["pending", "active", "suspended", "rejected"],
       provider_type: ["freelancer", "center"],
       user_role: ["customer", "seller", "provider", "admin"],

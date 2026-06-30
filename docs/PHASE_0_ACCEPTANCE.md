@@ -1,22 +1,32 @@
 # PHASE_0_ACCEPTANCE.md — Foundation & Spike
 
-> Phase-0 Definition-of-Done gate (IMPLEMENTATION_PLAN Phase 0; CLAUDE_RULES §0/§11/§12).
-> Tasks 0.1–0.10 are individually verified; this is the **phase gate**. Sandbox-side
-> work is prepared here; **live steps are run by the user** (DB/dev/deploy egress is
-> blocked in the build sandbox). **No commit/tag until the user confirms the preview is green.**
+> ## ✅ PHASE 0 — COMPLETE (gate PASSED 2026-06-30)
+> All Phase-0 DoD met (IMPLEMENTATION_PLAN Phase 0; CLAUDE_RULES §0/§11/§12). Tasks
+> 0.1–0.11 done & verified. **Live verification passed** by the user: typecheck +
+> lint clean, E2E **16/16**, RLS smoke confirmed, and a **green deploy at
+> `princess-woad.vercel.app`** with all 7 acceptance checks passing.
+> Remaining git **commit + tag `phase-0`** are being handled by the user.
 
 ---
 
-## 1. Gate results (sandbox — green)
+## 1. Gate results — green ✅
 
 | Gate | Command | Result |
 |------|---------|--------|
 | Typecheck | `pnpm typecheck` | ✅ clean (no output) |
 | Lint | `pnpm lint` | ✅ `No ESLint warnings or errors` |
 | Unit | `pnpm test` | ✅ **24 passed**, 9 skipped (RLS opt-in) |
+| E2E | `pnpm test:e2e` | ✅ **16/16** (ar + en) — user-run |
+| RLS smoke | SQL editor + `rls.test.ts` | ✅ own-row read only · settings/fees readable · role+status escalation DENIED · full_name update allowed — user-run |
+| Deploy | Vercel | ✅ green at **`princess-woad.vercel.app`**; 7/7 acceptance checks pass — user-run |
 
 Unit coverage: auth schema validation (10), payment/notification providers + Tap
 amount conversion + webhook hashstring round-trip/tamper/missing (14).
+
+**Live acceptance (7/7 on `princess-woad.vercel.app`):** `/ar` RTL + `/en` LTR · navbar
+(no dark bar, gold hairline, frosted scroll) · Atelier-line auth mirrored per dir ·
+register → dashboard · seller/provider pending banner · login role-redirect ·
+wrong-password toast visible · logged-out dashboard → login.
 
 ---
 
@@ -110,21 +120,21 @@ favicon/logo are static in `public/`.
 
 ---
 
-## 5. What's Built vs Carried-forward
+## 5. Final reconciliation — Built / Deferred
 
-**Built in Phase 0** (Phase-0 scope complete): REQ-AUTH-01..06, REQ-NFR-01, -02, -03, -05, -07, -08, -10, REQ-PAY-07.
+**Built in Phase 0** (Phase-0 scope complete & live-verified): REQ-AUTH-01..06,
+REQ-NFR-01, -02, -03, -05, -07, -08, -10, **-11** (deploy green), REQ-PAY-06
+(config live & RLS-tested; admin UI = Phase 2), REQ-PAY-07.
 
-**Carried forward** (foundation built in Phase 0; feature lands in target phase — *not* cut):
-| REQ | Done in Phase 0 | Remaining | Target |
-|-----|-----------------|-----------|--------|
-| REQ-PAY-01 | Tap `createIntent` real call + sandbox spike verified | checkout intent + `payments` persistence | Phase 2 |
-| REQ-PAY-06 | `platform_settings`/`platform_upfront_fees` live + seeded | admin settings UI/API | Phase 2 |
-| REQ-NOT-01 | `NotificationService` + `ResendEmailChannel` scaffolded | triggers + localized templates | Phase 5 |
-| REQ-NFR-11 | Supabase live; preview prepared | production deploy | Phase 7 |
+**Deferred** (foundation built in Phase 0; feature scheduled for its phase — *not* cut):
+| REQ | Done in Phase 0 | Remaining | Deferred to |
+|-----|-----------------|-----------|-------------|
+| REQ-PAY-01 | Tap `createIntent` real call + sandbox spike verified (0.9) | checkout intent + `payments` persistence | Phase 2 |
+| REQ-NOT-01 | `NotificationService` + `ResendEmailChannel` scaffolded (0.8) | triggers + localized templates | Phase 5 |
 
-> **Status-vocabulary note (per CLAUDE_RULES §3 — surfaced, not silent):** multi-phase
-> requirements are kept **In progress + carry-forward** rather than forced to "Built"
-> (would overclaim) or "Deferred" (implies cut). They are on schedule for their phases.
+> At the gate these two are marked **Deferred (with reason + target phase)** in the
+> matrix — the binary the gate requires — explicitly *not cut*: the Phase-0 groundwork
+> is done and the feature is on schedule for its phase (CLAUDE_RULES §3 — surfaced, not silent).
 
 **Tip-of-spear carry-forwards (also in SESSION_STATE):** Tap webhook-secret confirmation
 via a delivered sandbox webhook (Phase 2); `/payment/callback` page + `/api/payments/webhook`
@@ -146,17 +156,25 @@ sitemap/hreflang/OpenGraph (Phase 6/7); per-table RLS + full-flow/COD E2E (Phase
 ---
 
 ## 7. Production checklist (discovered during Phase 0 — for Phase 7)
+
+> ⚠️ **The Phase-0 deploy shipped to Vercel PRODUCTION (from `main`) with sandbox/
+> placeholder keys** (`princess-woad.vercel.app`). That's fine for now — it's a
+> foundation preview in all but name; **no real payments or emails are wired**. A
+> real production launch still waits for **Phase 7** and the items below. Do not
+> treat the current prod URL as launch-ready.
+
 - [ ] **Re-enable Supabase Auth "Confirm email"** (turned OFF in dev for E2E; app already handles the no-session path).
-- [ ] **Tap:** switch sandbox → **live/Marketplace keys**; complete **per-vendor KYC / connected accounts**; confirm the **webhook hashstring secret** (account secret vs a webhook secret) and align `TapProvider.verifyWebhook`; set the live webhook `post.url`.
+- [ ] **Tap:** switch sandbox → **live/Marketplace keys**; complete **per-vendor KYC / connected accounts** + **legal entity**; confirm the **webhook hashstring secret** (account secret vs a webhook secret) and align `TapProvider.verifyWebhook`; set the live webhook `post.url`.
+- [ ] **Replace placeholder secrets** currently set on the deploy: `TAP_SECRET_KEY`, **`TAP_WEBHOOK_SECRET`**, **`RESEND_API_KEY`** (placeholders) → real values; `SUPABASE_SERVICE_ROLE_KEY` for the prod project.
 - [ ] **Rotate any dev secret ever shared** — notably the **0.3 DB password** shared in chat.
-- [ ] Production env on Vercel (live Supabase + live Tap + verified Resend sender); `NEXT_PUBLIC_APP_URL` = prod domain.
+- [ ] Verify a **verified Resend sender** (`RESEND_FROM_EMAIL`) before any real send; set `NEXT_PUBLIC_APP_URL` = prod domain.
 - [ ] Re-run E2E + RLS against production config; full-flow/COD E2E (Phase 6) green first.
 
 ---
 
-## 8. Commit/tag plan (ONLY after user confirms preview green)
-- Branch first (repo not yet initialized) — `git init`, branch e.g. `phase-0-foundation`.
-- One commit referencing Phase-0 REQ-IDs:
+## 8. Commit/tag plan (gate PASSED — user is handling git)
+- Suggested commit referencing Phase-0 REQ-IDs:
   `chore(foundation): scaffold next14+supabase, auth, rbac, i18n, providers, tap spike, shared UI`
   `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`
 - Tag `phase-0`. `.env.local` stays git-ignored; verify no secret is staged.
+- **Status: the user is performing the commit + tag.** Phase 0 is otherwise COMPLETE.

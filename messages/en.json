@@ -112,6 +112,20 @@
       "cta": "Back to home"
     }
   },
+  "upload": {
+    "addImages": "Add images",
+    "dropHint": "Drag & drop, or click to upload",
+    "hint": "JPEG, PNG, or WebP · up to {max} images · max {size} MB each",
+    "uploading": "Uploading…",
+    "remove": "Remove image",
+    "moveEarlier": "Move earlier",
+    "moveLater": "Move later",
+    "cover": "Cover",
+    "maxReached": "You can upload up to {max} images.",
+    "tooLarge": "{name} is larger than {size} MB.",
+    "badType": "{name} isn't a supported image type.",
+    "failed": "Upload failed. Please try again."
+  },
   "home": {
     "brand": "Princess",
     "eyebrow": "Shop · Rent · Book",
