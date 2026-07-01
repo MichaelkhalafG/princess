@@ -7,9 +7,11 @@ import { useEffect, useState } from "react";
 
 import { AuthMenu } from "@/components/shared/AuthMenu";
 import { LocaleSwitcher } from "@/components/shared/LocaleSwitcher";
+import { MarketSwitcher } from "@/components/shared/MarketSwitcher";
 import { MobileNav } from "@/components/shared/MobileNav";
 import { NAV_LINKS } from "@/components/shared/nav-config";
 import { Input } from "@/components/ui/input";
+import type { Market } from "@/lib/markets";
 import type { UserRole } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -20,6 +22,7 @@ const CART_COUNT = 2;
 interface NavbarClientProps {
   role: UserRole | null;
   userName: string | null;
+  market: Market;
 }
 
 /**
@@ -31,7 +34,7 @@ interface NavbarClientProps {
  *    (ivory blur + faint gold border + shadow-soft) and lifts.
  * Everything mirrors for RTL via logical properties; all copy from messages/*.
  */
-export function NavbarClient({ role, userName }: NavbarClientProps) {
+export function NavbarClient({ role, userName, market }: NavbarClientProps) {
   const t = useTranslations("nav");
   const tHome = useTranslations("home");
   const pathname = usePathname();
@@ -73,6 +76,7 @@ export function NavbarClient({ role, userName }: NavbarClientProps) {
           >
             {t("help")}
           </Link>
+          <MarketSwitcher market={market} />
           <span aria-hidden className="hidden h-4 w-px bg-border sm:inline-block" />
           <LocaleSwitcher />
         </div>

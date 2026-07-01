@@ -15,7 +15,8 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { parseProductImages } from "@/features/catalog/images";
-import type { SellerProduct } from "@/features/catalog/queries";
+import type { AttributeView, SellerProduct } from "@/features/catalog/queries";
+import type { Market } from "@/lib/markets";
 import { toMinor } from "@/lib/money";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useRouter } from "@/i18n/navigation";
@@ -23,10 +24,13 @@ import { useRouter } from "@/i18n/navigation";
 interface ProductManagerProps {
   products: SellerProduct[];
   categories: CategoryOption[];
+  attributes: AttributeView[];
+  /** The seller's APPROVED markets — drive the per-market price sets in the form. */
+  markets: Market[];
 }
 
 /** Seller product management (COMPONENT_TREE; USER_FLOWS §11) — own products only. */
-export function ProductManager({ products, categories }: ProductManagerProps) {
+export function ProductManager({ products, categories, attributes, markets }: ProductManagerProps) {
   const t = useTranslations("seller");
   const tToast = useTranslations("seller.toast");
   const locale = useLocale();
@@ -81,11 +85,48 @@ export function ProductManager({ products, categories }: ProductManagerProps) {
       id: "price",
       header: t("col.price"),
       align: "end",
-      cell: (product) => (
-        <PriceTag amountMinor={toMinor(product.price, product.currency)} currency={product.currency} />
-      ),
+      cell: (product) =>
+        product.product_prices.length > 0 ? (
+          <div className="flex flex-col items-end gap-0.5">
+            {product.product_prices.map((price) => (
+              <PriceTag
+                key={price.id}
+                amountMinor={toMinor(price.price, price.currency)}
+                currency={price.currency}
+              />
+            ))}
+          </div>
+        ) : (
+          <span className="text-mist">—</span>
+        ),
     },
-    { id: "stock", header: t("col.stock"), align: "end", cell: (product) => product.stock },
+    {
+      id: "stock",
+      header: t("col.stock"),
+      align: "end",
+      cell: (product) => {
+        const hasVariants = product.product_variants.length > 0;
+        const stockFor = (market: Market) =>
+          hasVariants
+            ? product.product_variants.reduce(
+                (sum, variant) =>
+                  sum + (variant.product_variant_stock.find((s) => s.market === market)?.stock ?? 0),
+                0,
+              )
+            : (product.product_prices.find((price) => price.market === market)?.stock ?? 0);
+        return product.product_prices.length > 0 ? (
+          <div className="flex flex-col items-end gap-0.5 tabular-nums">
+            {product.product_prices.map((price) => (
+              <span key={price.id} className="text-body-sm">
+                {price.market} {stockFor(price.market)}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="text-mist">—</span>
+        );
+      },
+    },
     {
       id: "status",
       header: t("col.status"),
@@ -173,6 +214,8 @@ export function ProductManager({ products, categories }: ProductManagerProps) {
               <ProductForm
                 product={formProduct}
                 categories={categories}
+                attributes={attributes}
+                markets={markets}
                 onSuccess={() => setEditing(null)}
                 onCancel={() => setEditing(null)}
               />

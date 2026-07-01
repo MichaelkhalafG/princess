@@ -15,10 +15,17 @@ export interface CatalogFilters {
   category: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  /** Rentable-only toggle (CR-01 §B) → `?rentable=1`. */
+  rentable: boolean;
+  /** Attribute facets keyed by attribute slug → selected option slugs (CR-01 §G). */
+  facets: Record<string, string[]>;
   sort: SortOption;
   page: number;
   limit: number;
 }
+
+/** URL contract: `?attr_<attributeSlug>=<optionSlug>,<optionSlug>` (multi-valued). */
+const FACET_PREFIX = "attr_";
 
 function parseSort(value: string | null): SortOption {
   return (SORT_OPTIONS as readonly string[]).includes(value ?? "") ? (value as SortOption) : "newest";
@@ -46,11 +53,20 @@ export function useFilters() {
   paramsRef.current = searchParams;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const facets: Record<string, string[]> = {};
+  searchParams.forEach((value, key) => {
+    if (!key.startsWith(FACET_PREFIX) || !value) return;
+    const options = value.split(",").filter(Boolean);
+    if (options.length > 0) facets[key.slice(FACET_PREFIX.length)] = options;
+  });
+
   const limitRaw = Number(searchParams.get("limit"));
   const filters: CatalogFilters = {
     category: searchParams.get("category"),
     minPrice: parseNonNegativeInt(searchParams.get("minPrice")),
     maxPrice: parseNonNegativeInt(searchParams.get("maxPrice")),
+    rentable: searchParams.get("rentable") === "1",
+    facets,
     sort: parseSort(searchParams.get("sort")),
     page: ((): number => {
       const n = Number(searchParams.get("page"));
@@ -115,6 +131,28 @@ export function useFilters() {
     [commit],
   );
 
+  // Toggle a single attribute-facet option (OR within an attribute; AND across
+  // attributes is applied by the query). Removes the param when the last one clears.
+  const toggleFacet = useCallback(
+    (attributeSlug: string, optionSlug: string) => {
+      commit((params) => {
+        const key = `${FACET_PREFIX}${attributeSlug}`;
+        const current = (params.get(key) ?? "").split(",").filter(Boolean);
+        const next = current.includes(optionSlug)
+          ? current.filter((slug) => slug !== optionSlug)
+          : [...current, optionSlug];
+        if (next.length === 0) params.delete(key);
+        else params.set(key, next.join(","));
+      });
+    },
+    [commit],
+  );
+
+  const setRentable = useCallback(
+    (on: boolean) => setParam("rentable", on ? "1" : null),
+    [setParam],
+  );
+
   const clear = useCallback(() => router.replace(pathname), [router, pathname]);
 
   useEffect(
@@ -128,7 +166,19 @@ export function useFilters() {
     filters.category !== null ||
     filters.minPrice !== null ||
     filters.maxPrice !== null ||
+    filters.rentable ||
+    Object.keys(filters.facets).length > 0 ||
     filters.sort !== "newest";
 
-  return { ...filters, isActive, setCategory, setSort, setPrice, setPage, clear };
+  return {
+    ...filters,
+    isActive,
+    setCategory,
+    setSort,
+    setPrice,
+    setPage,
+    setRentable,
+    toggleFacet,
+    clear,
+  };
 }

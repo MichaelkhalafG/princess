@@ -1,21 +1,37 @@
 /**
  * Dev-only catalog seed (NOT shipped; NOT a migration). Populates the dev database
- * with realistic dummy categories + products + variants so the catalog UI and the
- * Phase-1 e2e (public browse/filter/detail + seller manager) have data to find.
+ * with realistic dummy categories + products so the catalog UI and the e2e suites
+ * have data to find. Rewritten for the POST-0008 market shape (CR-1A):
  *
- * Uses the LIVE schema (DATABASE.md / lib/database.types.ts) via the service-role
- * client (bypasses RLS — server/CLI only). Deterministic (seeded PRNG) so reruns
- * produce the same shape; idempotent (re-seeding replaces the dummy sellers'
- * products rather than piling up duplicates). It ONLY ever creates/touches the
- * dummy sellers it owns (`@seed.princess.test`) and their products — never real
- * users or real products.
+ *   • products carry only market-agnostic fields (title/description/category/
+ *     is_rentable/images/status) — price/currency/stock were DROPPED by 0008.
+ *   • pricing + no-variant stock  → product_prices  (per market: EG/SA)
+ *   • variant stock               → product_variant_stock (per market)
+ *   • seller market presence      → vendor_markets (approved, via service-role)
+ *   • color + size facets         → product_attributes (options seeded by 0008)
  *
- *   pnpm seed:dummy    # ensure dummy sellers + categories, (re)seed their products
- *   pnpm seed:reset    # wipe the dummy sellers (cascades their products) + reseed
+ * Seller coverage is deliberate so the market-isolation test has real cases:
+ *   seed-seller-1 → EG + SA (dual-priced)   seed-seller-2 → SA only
+ *   seed-seller-3 → EG only
+ * ⇒ both markets have active products, with some single-market and some
+ * both-market products, and one seller priced in both EGP and SAR.
  *
- * GUARD: refuses to run unless `SEED_DUMMY=1` is set (add it to `.env.local`), and
- * refuses when NODE_ENV=production or on Vercel — so it can never hit prod.
- * The sandbox can't reach Postgres; run it from your own terminal.
+ * Uses the LIVE schema (lib/database.types.ts, regenerated after `pnpm db:types`)
+ * via the service-role client (bypasses RLS — server/CLI only). Deterministic
+ * (seeded PRNG); idempotent (re-seeding replaces only the dummy sellers' products —
+ * the new child tables cascade on product/variant delete). It ONLY ever touches the
+ * dummy sellers it owns (`@seed.princess.test`) — never real users or products.
+ *
+ *   pnpm seed:dummy    # ensure dummy sellers + markets + categories, (re)seed products
+ *   pnpm seed:reset    # wipe the dummy sellers (cascades everything) + reseed
+ *
+ * PREREQUISITE: apply 0008 (`pnpm exec supabase db push`) and regen types
+ * (`pnpm db:types`) FIRST — this script targets the post-0008 tables and the
+ * color/size vocabulary 0008 seeds.
+ *
+ * GUARD: refuses to run unless `SEED_DUMMY=1` (add it to `.env.local`), and refuses
+ * when NODE_ENV=production or on Vercel — so it can never hit prod. The sandbox
+ * can't reach Postgres; run it from your own terminal.
  */
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -23,18 +39,29 @@ import { readFileSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database, Enums, Json, TablesInsert } from "@/lib/database.types";
+import { CURRENCY_BY_MARKET, type Market } from "@/lib/markets";
 
-type Currency = Enums<"currency_code">;
 type ListingStatus = Enums<"listing_status">;
 type CategoryInsert = TablesInsert<"categories">;
 type ProductInsert = TablesInsert<"products">;
 type VariantInsert = TablesInsert<"product_variants">;
+type ProductPriceInsert = TablesInsert<"product_prices">;
+type VariantStockInsert = TablesInsert<"product_variant_stock">;
+type VendorMarketInsert = TablesInsert<"vendor_markets">;
+type ProductAttributeInsert = TablesInsert<"product_attributes">;
 
 interface SeedImage {
   url: string;
   alt: string;
   sort: number;
 }
+
+// Market → currency is the single source of truth in lib/markets.ts (imported above).
+const CITY_BY_MARKET: Record<Market, string> = { EG: "Cairo", SA: "Riyadh" };
+// Plausible per-market magnitudes for dummy data. NOT a conversion rate — markets are
+// independent (no FX). SAR uses the category base range; EGP is scaled up so the
+// numbers look realistic for that currency.
+const MARKET_PRICE_FACTOR: Record<Market, number> = { SA: 1, EG: 6 };
 
 // ---------------------------------------------------------------------------
 // .env.local loader (no dependency) — mirrors scripts/tap-spike.ts.
@@ -84,11 +111,21 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-const rng = mulberry32(20260630);
+const rng = mulberry32(20260701);
 const pick = <T>(arr: readonly T[]): T => arr[Math.floor(rng() * arr.length)] as T;
 const randInt = (min: number, max: number): number => min + Math.floor(rng() * (max - min + 1));
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 const chance = (p: number): boolean => rng() < p;
+
+/** Deterministic shuffle then take N — distinct picks from a pool. */
+function pickDistinct<T>(arr: readonly T[], n: number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [copy[i], copy[j]] = [copy[j] as T, copy[i] as T];
+  }
+  return copy.slice(0, Math.min(n, copy.length));
+}
 
 function chunk<T>(items: readonly T[], size: number): T[][] {
   const out: T[][] = [];
@@ -230,18 +267,30 @@ const PER_CATEGORY = 12; // 9 product categories → ~108 products
 
 // Dummy sellers this script owns. The `@seed.princess.test` domain is the cleanup
 // key and keeps these distinct from e2e (`@e2e.…`) and rls (`@rls-test.…`) users.
+// `markets` drives per-market pricing + the market-isolation test (see header).
 const SEED_SELLER_DOMAIN = "@seed.princess.test";
 const SEED_SELLER_PASSWORD = "Princess12345";
-const SEED_SELLERS: readonly { email: string; name: string }[] = [
-  { email: `seed-seller-1${SEED_SELLER_DOMAIN}`, name: "أزياء الأميرة" },
-  { email: `seed-seller-2${SEED_SELLER_DOMAIN}`, name: "بيت الجمال" },
-  { email: `seed-seller-3${SEED_SELLER_DOMAIN}`, name: "لمسة أناقة" },
+const SEED_SELLERS: readonly { email: string; name: string; markets: readonly Market[] }[] = [
+  { email: `seed-seller-1${SEED_SELLER_DOMAIN}`, name: "أزياء الأميرة", markets: ["EG", "SA"] },
+  { email: `seed-seller-2${SEED_SELLER_DOMAIN}`, name: "بيت الجمال", markets: ["SA"] },
+  { email: `seed-seller-3${SEED_SELLER_DOMAIN}`, name: "لمسة أناقة", markets: ["EG"] },
 ] as const;
 
 interface SeededSeller {
   id: string;
   email: string;
   name: string;
+  markets: readonly Market[];
+}
+
+/** The 0008-seeded color/size vocabulary (attribute id + its option ids). */
+interface AttrVocab {
+  attributeId: string;
+  optionIds: readonly string[];
+}
+interface AttributeVocabulary {
+  color: AttrVocab;
+  size: AttrVocab;
 }
 
 // ---------------------------------------------------------------------------
@@ -275,6 +324,7 @@ function buildImages(seedKey: string, titleAr: string): SeedImage[] {
   }));
 }
 
+/** Variants now carry only identity (size/color/sku) — stock is per-market (below). */
 function buildVariants(productId: string, seedKey: string, kind: VariantKind): VariantInsert[] {
   if (kind === "none" || !chance(0.6)) return [];
 
@@ -294,22 +344,50 @@ function buildVariants(productId: string, seedKey: string, kind: VariantKind): V
 
   const n = Math.min(randInt(1, 4), pairs.length);
   return pairs.slice(0, n).map((pair, idx) => ({
+    id: randomUUID(), // explicit so we can attach per-market stock rows
     product_id: productId,
     size: pair.size,
     color: pair.color,
-    stock: randInt(0, 30),
     sku: `SKU-${seedKey}-${idx + 1}`.toUpperCase(),
   }));
 }
 
-interface BuiltCatalog {
-  products: ProductInsert[];
-  variants: VariantInsert[];
+/** ≥1 color for every product; ≥1 size for apparel/shoes; options only (no free text). */
+function buildAttributes(
+  productId: string,
+  kind: VariantKind,
+  vocab: AttributeVocabulary,
+): ProductAttributeInsert[] {
+  const rows: ProductAttributeInsert[] = [];
+  for (const optionId of pickDistinct(vocab.color.optionIds, randInt(1, 3))) {
+    rows.push({ product_id: productId, attribute_id: vocab.color.attributeId, option_id: optionId });
+  }
+  if ((kind === "apparel" || kind === "shoes") && vocab.size.optionIds.length > 0) {
+    for (const optionId of pickDistinct(vocab.size.optionIds, randInt(1, 3))) {
+      rows.push({ product_id: productId, attribute_id: vocab.size.attributeId, option_id: optionId });
+    }
+  }
+  return rows;
 }
 
-function buildCatalog(sellers: readonly SeededSeller[], categoryIdBySlug: Map<string, string>): BuiltCatalog {
+interface BuiltCatalog {
+  products: ProductInsert[];
+  prices: ProductPriceInsert[];
+  variants: VariantInsert[];
+  variantStock: VariantStockInsert[];
+  attributes: ProductAttributeInsert[];
+}
+
+function buildCatalog(
+  sellers: readonly SeededSeller[],
+  categoryIdBySlug: Map<string, string>,
+  vocab: AttributeVocabulary,
+): BuiltCatalog {
   const products: ProductInsert[] = [];
+  const prices: ProductPriceInsert[] = [];
   const variants: VariantInsert[] = [];
+  const variantStock: VariantStockInsert[] = [];
+  const attributes: ProductAttributeInsert[] = [];
   let n = 0;
 
   for (const cfg of PRODUCT_CATEGORIES) {
@@ -325,9 +403,6 @@ function buildCatalog(sellers: readonly SeededSeller[], categoryIdBySlug: Map<st
       const titleEn = `${cfg.en[baseIndex]} ${pick(ADJ_EN)}`;
       const title = useArabic ? titleAr : titleEn;
 
-      const price = round2(cfg.priceMin + rng() * (cfg.priceMax - cfg.priceMin));
-      const currency: Currency = n % 3 === 0 ? "EGP" : "SAR";
-
       // MOSTLY active so the public-browse + detail e2e find listings.
       const r = rng();
       const status: ListingStatus = r < 0.8 ? "active" : r < 0.9 ? "draft" : "inactive";
@@ -336,28 +411,52 @@ function buildCatalog(sellers: readonly SeededSeller[], categoryIdBySlug: Map<st
       const images = buildImages(seedKey, titleAr);
       const seller = sellers[n % sellers.length] as SeededSeller;
 
+      // Market-agnostic product row (price/currency/stock live in product_prices now).
       products.push({
         id,
         seller_id: seller.id,
         category_id: categoryId,
         title,
         description: `${titleAr} — خامات فاخرة وجودة عالية. ${titleEn} — premium materials and a refined finish.`,
-        price,
-        currency,
         is_rentable: isRentable,
-        rental_daily_price: isRentable ? round2(price * 0.08) : null,
-        security_deposit: isRentable ? round2(price * 0.3) : null,
         images: images as unknown as Json,
-        stock: randInt(0, 60),
         status,
       });
 
-      variants.push(...buildVariants(id, seedKey, cfg.variant));
+      const productVariants = buildVariants(id, seedKey, cfg.variant);
+      variants.push(...productVariants);
+      const hasVariants = productVariants.length > 0;
+
+      // One price row per market the seller is approved for (independent numbers,
+      // no conversion). Per-market variant stock; base stock only for no-variant.
+      for (const market of seller.markets) {
+        const base = cfg.priceMin + rng() * (cfg.priceMax - cfg.priceMin);
+        const price = round2(base * MARKET_PRICE_FACTOR[market]);
+        prices.push({
+          product_id: id,
+          market,
+          currency: CURRENCY_BY_MARKET[market],
+          price,
+          rental_daily_price: isRentable ? round2(price * 0.08) : null,
+          security_deposit: isRentable ? round2(price * 0.3) : null,
+          stock: hasVariants ? 0 : randInt(0, 60),
+          is_available: true,
+        });
+        for (const variant of productVariants) {
+          variantStock.push({
+            variant_id: variant.id as string,
+            market,
+            stock: randInt(0, 30),
+          });
+        }
+      }
+
+      attributes.push(...buildAttributes(id, cfg.variant, vocab));
       n++;
     }
   }
 
-  return { products, variants };
+  return { products, prices, variants, variantStock, attributes };
 }
 
 // ---------------------------------------------------------------------------
@@ -402,9 +501,27 @@ async function ensureSellers(db: SupabaseClient<Database>): Promise<SeededSeller
       .update({ role: "seller", status: "active", full_name: def.name })
       .eq("id", id);
     if (promoteError) throw new Error(`promote ${def.email} failed: ${promoteError.message}`);
-    sellers.push({ id, email: def.email, name: def.name });
+    sellers.push({ id, email: def.email, name: def.name, markets: def.markets });
   }
   return sellers;
+}
+
+/** Approve each seller's markets (service-role bypasses the no-self-approve RLS). */
+async function ensureVendorMarkets(db: SupabaseClient<Database>, sellers: readonly SeededSeller[]): Promise<void> {
+  const rows: VendorMarketInsert[] = [];
+  for (const seller of sellers) {
+    for (const market of seller.markets) {
+      rows.push({
+        vendor_id: seller.id,
+        market,
+        branch_name: `${seller.name} — ${CITY_BY_MARKET[market]}`,
+        branch_address: { city: CITY_BY_MARKET[market] } as unknown as Json,
+        is_approved: true,
+      });
+    }
+  }
+  const { error } = await db.from("vendor_markets").upsert(rows, { onConflict: "vendor_id,market" });
+  if (error) throw new Error(`upsert vendor_markets failed: ${error.message}`);
 }
 
 async function upsertCategories(db: SupabaseClient<Database>): Promise<Map<string, string>> {
@@ -419,14 +536,48 @@ async function upsertCategories(db: SupabaseClient<Database>): Promise<Map<strin
   return idBySlug;
 }
 
-/** Remove ONLY the dummy sellers' products (cascades their variants). */
+/** Read the 0008-seeded color/size vocabulary (definitions + their option ids). */
+async function readAttributeVocab(db: SupabaseClient<Database>): Promise<AttributeVocabulary> {
+  const { data: defs, error: defErr } = await db
+    .from("attribute_definitions")
+    .select("id, slug")
+    .in("slug", ["color", "size"]);
+  if (defErr) throw new Error(`read attribute_definitions failed: ${defErr.message}`);
+  const colorDef = (defs ?? []).find((d) => d.slug === "color");
+  const sizeDef = (defs ?? []).find((d) => d.slug === "size");
+  if (!colorDef || !sizeDef) {
+    throw new Error("color/size attributes not found — apply migration 0008 (it seeds them) before seeding.");
+  }
+
+  const { data: opts, error: optErr } = await db
+    .from("attribute_options")
+    .select("id, attribute_id")
+    .in("attribute_id", [colorDef.id, sizeDef.id]);
+  if (optErr) throw new Error(`read attribute_options failed: ${optErr.message}`);
+
+  const colorOptions: string[] = [];
+  const sizeOptions: string[] = [];
+  for (const opt of opts ?? []) {
+    if (opt.attribute_id === colorDef.id) colorOptions.push(opt.id);
+    else if (opt.attribute_id === sizeDef.id) sizeOptions.push(opt.id);
+  }
+  if (colorOptions.length === 0 || sizeOptions.length === 0) {
+    throw new Error("color/size have no options — re-check migration 0008's attribute_options seed.");
+  }
+  return {
+    color: { attributeId: colorDef.id, optionIds: colorOptions },
+    size: { attributeId: sizeDef.id, optionIds: sizeOptions },
+  };
+}
+
+/** Remove ONLY the dummy sellers' products (cascades variants → prices → stock → attributes). */
 async function wipeDummyProducts(db: SupabaseClient<Database>, sellerIds: readonly string[]): Promise<void> {
   if (sellerIds.length === 0) return;
   const { error } = await db.from("products").delete().in("seller_id", sellerIds);
   if (error) throw new Error(`wipe dummy products failed: ${error.message}`);
 }
 
-/** Delete the dummy sellers' auth users (cascades profiles → products → variants). */
+/** Delete the dummy sellers' auth users (cascades profiles → products → all children). */
 async function deleteDummySellers(db: SupabaseClient<Database>): Promise<number> {
   const existing = await findSeedSellerIds(db);
   for (const id of existing.values()) {
@@ -443,10 +594,31 @@ async function insertProducts(db: SupabaseClient<Database>, rows: readonly Produ
   }
 }
 
+async function insertProductPrices(db: SupabaseClient<Database>, rows: readonly ProductPriceInsert[]): Promise<void> {
+  for (const part of chunk(rows, 100)) {
+    const { error } = await db.from("product_prices").insert(part);
+    if (error) throw new Error(`insert product_prices failed: ${error.message}`);
+  }
+}
+
 async function insertVariants(db: SupabaseClient<Database>, rows: readonly VariantInsert[]): Promise<void> {
   for (const part of chunk(rows, 100)) {
     const { error } = await db.from("product_variants").insert(part);
     if (error) throw new Error(`insert product_variants failed: ${error.message}`);
+  }
+}
+
+async function insertVariantStock(db: SupabaseClient<Database>, rows: readonly VariantStockInsert[]): Promise<void> {
+  for (const part of chunk(rows, 100)) {
+    const { error } = await db.from("product_variant_stock").insert(part);
+    if (error) throw new Error(`insert product_variant_stock failed: ${error.message}`);
+  }
+}
+
+async function insertProductAttributes(db: SupabaseClient<Database>, rows: readonly ProductAttributeInsert[]): Promise<void> {
+  for (const part of chunk(rows, 100)) {
+    const { error } = await db.from("product_attributes").insert(part);
+    if (error) throw new Error(`insert product_attributes failed: ${error.message}`);
   }
 }
 
@@ -479,7 +651,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`Princess dummy seed${reset ? " (reset)" : ""}`);
+  console.log(`Princess dummy seed${reset ? " (reset)" : ""} — market shape (post-0008)`);
   console.log(`  target: ${maskUrl(url)}`);
   console.log(`  dummy sellers: ${SEED_SELLER_DOMAIN}\n`);
 
@@ -487,30 +659,44 @@ async function main(): Promise<void> {
 
   if (reset) {
     const removed = await deleteDummySellers(db);
-    console.log(`✓ reset: removed ${removed} dummy seller(s) + their products/variants\n`);
+    console.log(`✓ reset: removed ${removed} dummy seller(s) + their products/prices/stock/attributes\n`);
   }
 
   const sellers = await ensureSellers(db);
-  console.log(`✓ sellers ready: ${sellers.map((s) => s.email).join(", ")}`);
+  console.log(`✓ sellers ready: ${sellers.map((s) => `${s.email} [${s.markets.join("+")}]`).join(", ")}`);
+
+  await ensureVendorMarkets(db, sellers);
+  console.log(`✓ vendor_markets approved: ${sellers.reduce((sum, s) => sum + s.markets.length, 0)} row(s)`);
 
   const categoryIdBySlug = await upsertCategories(db);
   console.log(`✓ categories upserted: ${categoryIdBySlug.size} (incl. ${SERVICE_CATEGORIES.length} service)`);
 
-  // Idempotent: clear this run's-owner products before inserting a fresh set.
+  const vocab = await readAttributeVocab(db);
+  console.log(`✓ attribute vocab: color(${vocab.color.optionIds.length}) + size(${vocab.size.optionIds.length}) options`);
+
+  // Idempotent: clear this run's-owner products before inserting a fresh set
+  // (cascades variants/prices/stock/attributes).
   await wipeDummyProducts(db, sellers.map((s) => s.id));
 
-  const { products, variants } = buildCatalog(sellers, categoryIdBySlug);
+  const { products, prices, variants, variantStock, attributes } = buildCatalog(sellers, categoryIdBySlug, vocab);
   await insertProducts(db, products);
+  await insertProductPrices(db, prices);
   await insertVariants(db, variants);
+  await insertVariantStock(db, variantStock);
+  await insertProductAttributes(db, attributes);
 
-  const activeCount = products.filter((p) => p.status === "active").length;
-  const rentableCount = products.filter((p) => p.is_rentable).length;
-  console.log(`✓ products inserted: ${products.length} (${activeCount} active, ${rentableCount} rentable)`);
-  console.log(`✓ variants inserted: ${variants.length}`);
+  // Per-market active counts (active product with a price row in that market).
+  const activeIds = new Set(products.filter((p) => p.status === "active").map((p) => p.id));
+  const activeByMarket: Record<Market, number> = { EG: 0, SA: 0 };
+  for (const price of prices) if (activeIds.has(price.product_id)) activeByMarket[price.market] += 1;
 
-  // The catalog reads are cached (unstable_cache, tag `products`/`categories`, D5)
-  // and this seed wrote straight to the DB — so bust those tags. Best-effort: only
-  // works if a dev server is running; otherwise clear `.next/cache` before serving.
+  console.log(`✓ products inserted: ${products.length} (${activeIds.size} active)`);
+  console.log(`✓ product_prices: ${prices.length} (EG active ${activeByMarket.EG}, SA active ${activeByMarket.SA})`);
+  console.log(`✓ variants: ${variants.length}; variant_stock: ${variantStock.length}; attributes: ${attributes.length}`);
+
+  // The catalog reads are cached (unstable_cache, tag `products`/`categories`, D5) and
+  // this seed wrote straight to the DB — bust those tags. Best-effort: only works if a
+  // dev server is running; otherwise clear `.next/cache` before serving.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
     const res = await fetch(`${appUrl}/api/dev/revalidate`, { method: "POST" });

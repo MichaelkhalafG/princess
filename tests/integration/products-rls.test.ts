@@ -103,7 +103,7 @@ describe.skipIf(!ENABLED)("RLS — products owner isolation (live, anon key)", (
     const anon = newAnonClient();
     const { error } = await anon
       .from("products")
-      .insert({ seller_id: sellerA, title: "Anon Forbidden", price: 100, currency: "SAR" });
+      .insert({ seller_id: sellerA, title: "Anon Forbidden" });
     expect(error).not.toBeNull();
   });
 
@@ -113,8 +113,6 @@ describe.skipIf(!ENABLED)("RLS — products owner isolation (live, anon key)", (
       .insert({
         seller_id: sellerA,
         title: "Seller A Draft",
-        price: 250,
-        currency: "SAR",
         status: "draft",
       })
       .select("id, seller_id, status")
@@ -129,7 +127,7 @@ describe.skipIf(!ENABLED)("RLS — products owner isolation (live, anon key)", (
   it("seller A cannot insert a product spoofing seller B's id", async () => {
     const { error } = await clientA
       .from("products")
-      .insert({ seller_id: sellerB, title: "Spoofed", price: 10, currency: "SAR" });
+      .insert({ seller_id: sellerB, title: "Spoofed" });
     expect(error).not.toBeNull();
   });
 

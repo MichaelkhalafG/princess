@@ -5,9 +5,12 @@ import { getSessionProfile } from "@/features/auth/queries";
 import { createProduct } from "@/features/catalog/mutations";
 import { listProducts } from "@/features/catalog/queries";
 import { productFiltersSchema, productSchema } from "@/features/catalog/schema";
+import { resolveReadMarket } from "@/lib/markets-server";
 
-// GET /api/products?category=&minPrice=&maxPrice=&sort=&page=&limit= (API_MAP Products).
-// Public; returns { data: { items, total, page } }. 400 VALIDATION on bad filters.
+// GET /api/products?category=&minPrice=&maxPrice=&rentable=&sort=&page=&limit= (API_MAP
+// Products). Public; MARKET is server-resolved (cookie/profile) — `?market=` is honored
+// only for an admin (resolveReadMarket). Returns { data: { items, total, page } } for the
+// active market. 400 VALIDATION on bad filters.
 export async function GET(request: NextRequest) {
   const raw = Object.fromEntries(request.nextUrl.searchParams);
   const parsed = productFiltersSchema.safeParse(raw);
@@ -15,7 +18,8 @@ export async function GET(request: NextRequest) {
     return apiError(ERROR_CODES.VALIDATION, "Invalid product filters", 400, parsed.error.flatten());
   }
 
-  const result = await listProducts(parsed.data);
+  const market = await resolveReadMarket(request.nextUrl.searchParams.get("market"));
+  const result = await listProducts(parsed.data, market);
   return apiSuccess(result);
 }
 

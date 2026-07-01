@@ -18,6 +18,22 @@
     "trackOrder": "Track order",
     "help": "Help"
   },
+  "market": {
+    "switch": "Switch market",
+    "name": {
+      "EG": "Egypt",
+      "SA": "Saudi Arabia"
+    },
+    "currency": {
+      "EG": "Egyptian Pound (EGP)",
+      "SA": "Saudi Riyal (SAR)"
+    },
+    "chooser": {
+      "title": "Choose your market",
+      "description": "Prices, availability, and delivery are shown for your market. You can change it anytime.",
+      "confirm": "Confirm"
+    }
+  },
   "auth": {
     "fields": {
       "email": "Email",
@@ -91,6 +107,30 @@
       "success": "Logged out"
     }
   },
+  "vendorMarkets": {
+    "title": "Your markets",
+    "subtitle": "Declare the markets you serve. Each needs admin approval before you can price products there.",
+    "approved": "Approved",
+    "pending": "Pending review",
+    "declare": "Declare {market}"
+  },
+  "sellerCard": {
+    "soldBy": "Sold by",
+    "verified": "Verified",
+    "unnamed": "Princess seller"
+  },
+  "adminAttributes": {
+    "title": "Product attributes",
+    "subtitle": "Controlled color & size options buyers filter by.",
+    "attribute": "Attribute",
+    "valueEn": "Value (EN)",
+    "valueAr": "Value (AR)",
+    "slug": "Slug",
+    "addTitle": "Add an option",
+    "add": "Add option",
+    "saved": "Attribute options updated",
+    "error": "Something went wrong. Please try again."
+  },
   "dashboard": {
     "welcome": "Welcome, {name}",
     "welcomeNoName": "Welcome",
@@ -150,12 +190,16 @@
       "currency": "Currency",
       "stock": "Stock",
       "status": "Status",
+      "pricing": "Pricing by market",
+      "available": "Available in this market",
+      "noMarkets": "Declare a market and get it approved before adding products.",
       "rentable": "Available to rent",
       "yes": "Yes",
       "no": "No",
       "rentalDailyPrice": "Daily rental price",
       "securityDeposit": "Security deposit",
       "images": "Images",
+      "attributes": "Color & size",
       "variants": "Variants",
       "addVariant": "Add variant",
       "removeVariant": "Remove variant",
@@ -178,7 +222,12 @@
     "color": "Color",
     "reviews": "Reviews",
     "noReviews": "No reviews yet.",
-    "viewImage": "View image {number}"
+    "viewImage": "View image {number}",
+    "notInMarket": {
+      "title": "Not available in your market",
+      "description": "This product isn't offered in your selected market yet. Switch your market to see it, or keep browsing.",
+      "browse": "Browse all products"
+    }
   },
   "filters": {
     "title": "Filters",
@@ -186,6 +235,10 @@
     "allCategories": "All categories",
     "minPrice": "Min price",
     "maxPrice": "Max price",
+    "rentableLabel": "Availability",
+    "rentableOnly": "Available to rent",
+    "rating": "Rating",
+    "comingSoon": "Coming soon",
     "sortLabel": "Sort by",
     "sort": {
       "newest": "Newest",

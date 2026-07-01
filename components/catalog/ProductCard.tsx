@@ -1,14 +1,14 @@
-import { ImageOff } from "lucide-react";
+import { Heart, ImageOff, Star } from "lucide-react";
 import Image from "next/image";
 
 import { PriceTag } from "@/components/shared/PriceTag";
 import { parseProductImages } from "@/features/catalog/images";
-import type { Product } from "@/features/catalog/queries";
+import type { MarketProduct } from "@/features/catalog/queries";
 import { toMinor } from "@/lib/money";
 import { Link } from "@/i18n/navigation";
 
 interface ProductCardProps {
-  product: Product;
+  product: MarketProduct;
   /** Locale-resolved category name (from the page). */
   categoryLabel?: string;
 }
@@ -42,6 +42,15 @@ export function ProductCard({ product, categoryLabel }: ProductCardProps) {
             <ImageOff className="h-8 w-8" />
           </span>
         )}
+        {/* Wishlist heart — DECORATIVE placeholder (favorites is a later feature; no
+            behavior wired). Rendered as a span (not a button) so it doesn't nest an
+            interactive control inside the card link. */}
+        <span
+          aria-hidden
+          className="absolute end-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-card/80 text-muted-foreground shadow-soft backdrop-blur-sm"
+        >
+          <Heart className="h-4 w-4" />
+        </span>
       </div>
       <div className="flex flex-1 flex-col gap-1 p-4">
         {categoryLabel ? (
@@ -55,6 +64,12 @@ export function ProductCard({ product, categoryLabel }: ProductCardProps) {
           currency={product.currency}
           className="mt-1"
         />
+        {/* Star rating — DECORATIVE placeholder until reviews ship (Phase 5). */}
+        <span className="mt-1 flex gap-0.5" aria-hidden>
+          {Array.from({ length: 5 }, (_, index) => (
+            <Star key={index} className="h-3.5 w-3.5 text-mist" />
+          ))}
+        </span>
       </div>
     </Link>
   );

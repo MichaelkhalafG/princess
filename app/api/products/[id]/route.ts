@@ -5,15 +5,19 @@ import { getSessionProfile } from "@/features/auth/queries";
 import { deleteProduct, updateProduct } from "@/features/catalog/mutations";
 import { getProductById } from "@/features/catalog/queries";
 import { productSchema } from "@/features/catalog/schema";
+import { resolveReadMarket } from "@/lib/markets-server";
 
 // GET /api/products/:id (API_MAP Products). Public; returns
-// { data: { product, variants, reviews } }. 404 NOT_FOUND when missing or not active.
+// { data: { product, variants, reviews } } for the active market. 404 NOT_FOUND when
+// missing/inactive OR not priced in the active market (invisible — no cross-market leak;
+// the human-facing soft "not available" page is the RSC's job, DC-2).
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const detail = await getProductById(params.id);
-  if (!detail) {
+  const market = await resolveReadMarket(request.nextUrl.searchParams.get("market"));
+  const result = await getProductById(params.id, market);
+  if (result.status !== "ok") {
     return apiError(ERROR_CODES.NOT_FOUND, "Product not found", 404);
   }
-  return apiSuccess(detail);
+  return apiSuccess(result.detail);
 }
 
 /** Approved-seller gate shared by PUT/DELETE (ownership re-checked in the mutation). */

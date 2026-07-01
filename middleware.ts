@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { routing } from "@/i18n/routing";
 import type { Database } from "@/lib/database.types";
+import { DEFAULT_MARKET, MARKET_GEO_COOKIE, type Market } from "@/lib/markets";
 import { dashboardPathForRole, loginPath } from "@/lib/rbac";
 
 // next-intl locale handler (locale negotiation + prefixing).
@@ -51,7 +52,20 @@ export default async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 3) RBAC guard for /<locale>/dashboard/*.
+  // 3) Market (CR-01 §A, DC-1): resolve a geo HINT for the first-visit MarketChooser
+  //    and stash it for the app to read (SYSTEM_ARCHITECTURE §5/§19). This is only a
+  //    suggestion — it NEVER auto-commits the active market (that is the explicit
+  //    `market` cookie set via /api/market). Market stays orthogonal to locale.
+  const geoCountry = request.geo?.country;
+  const geoHint: Market = geoCountry === "SA" ? "SA" : geoCountry === "EG" ? "EG" : DEFAULT_MARKET;
+  request.cookies.set(MARKET_GEO_COOKIE, geoHint); // readable by RSC in this request
+  response.cookies.set(MARKET_GEO_COOKIE, geoHint, {
+    path: "/",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+
+  // 4) RBAC guard for /<locale>/dashboard/*.
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
   const maybeLocale = segments[0];
   const isDashboard = hasLocale(routing.locales, maybeLocale ?? "") && segments[1] === "dashboard";

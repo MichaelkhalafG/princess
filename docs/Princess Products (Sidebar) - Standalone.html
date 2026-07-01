@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Princess — Products (Direction A · Boutique Sidebar)</title>
+
+<!-- Brand fonts: Playfair (serif headings + prices) · Inter (Latin UI) · Tajawal (Arabic UI) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* =================================================================
+   PRINCESS · PRODUCTS LISTING — DIRECTION A "Boutique Sidebar"
+   Zara-elegant grid · Amazon-grade left/right filter sidebar.
+   DESIGN TOKENS — map these to your design-system variables.
+   ================================================================= */
+:root{
+  --rose-gold:#B76E79;        /* primary accent — the ONE focal color   */
+  --rose-gold-deep:#9A5560;   /* hover / pressed                        */
+  --peach:#F8D9C4;            /* warm fill                              */
+  --peach-soft:#FDEEE3;       /* softest warm fill — filter zone tint   */
+  --champagne:#EBD9C0;        /* warm tertiary / fine dividers          */
+  --ivory:#FFFBF7;            /* page background — warm white           */
+  --pearl:#FFFFFF;            /* cards / surfaces                       */
+  --plum-ink:#2A2228;         /* text — never pure black                */
+  --mauve-gray:#6E626A;       /* secondary text                         */
+  --mist:#A89AA1;             /* muted text                             */
+  --gold-accent:#C9A227;      /* whisper only — ratings / verified      */
+
+  --field-border:#EDE0D4;     /* hairline warm border                   */
+  --hairline:#F0E7DD;         /* finest divider                         */
+  --focus-ring:rgba(183,110,121,.18);
+
+  --shadow-soft:0 1px 2px rgba(70,40,46,.04), 0 6px 18px -10px rgba(120,70,80,.18);
+  --shadow-raised:0 4px 10px rgba(70,40,46,.07), 0 22px 40px -18px rgba(120,70,80,.30);
+
+  --font-serif:'Playfair Display',Georgia,serif;
+  --font-ui:'Inter',system-ui,-apple-system,sans-serif;
+  --font-ar:'Tajawal','Inter',sans-serif;
+  --font-mono:'SFMono-Regular',ui-monospace,'Cascadia Mono',Menlo,monospace;
+
+  --pad-inline:clamp(20px,4vw,56px);
+  --radius-lg:16px;
+  --radius-md:12px;
+}
+
+*{box-sizing:border-box;}
+html{ -webkit-text-size-adjust:100%; }
+body{
+  margin:0; background:var(--ivory); color:var(--plum-ink);
+  font-family:var(--font-ui);
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+[dir="rtl"] body{ font-family:var(--font-ar); }
+img,svg{ display:block; }
+button{ font-family:inherit; }
+::selection{ background:var(--peach); }
+
+.tnum{ font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
+
+/* =================================================================
+   SLIM SITE BAR  (condensed — the full navbar lives elsewhere)
+   ================================================================= */
+.psite{
+  display:flex; align-items:center; gap:22px; height:64px;
+  padding-inline:var(--pad-inline);
+  background:var(--ivory); border-block-end:1px solid var(--champagne);
+  position:sticky; top:0; z-index:60;
+}
+.psite__logo{ display:flex; align-items:center; gap:11px; text-decoration:none; flex-shrink:0; }
+.psite__mark{ width:34px; height:34px; }
+.psite__word{ font-family:var(--font-serif); font-weight:600; font-size:23px; letter-spacing:.01em; color:var(--plum-ink); }
+.psite__links{ flex:1; display:flex; align-items:center; gap:26px; }
+.psite__link{ font:500 14.5px/1 var(--font-ui); color:var(--mauve-gray); text-decoration:none; transition:color .2s; }
+[dir="rtl"] .psite__link{ font-family:var(--font-ar); font-size:15px; }
+.psite__link:hover{ color:var(--plum-ink); }
+.psite__link.is-active{ color:var(--plum-ink); position:relative; }
+.psite__link.is-active::after{ content:""; position:absolute; inset-inline:0; inset-block-end:-21px; height:2px; background:var(--rose-gold); border-radius:2px; }
+.psite__right{ display:flex; align-items:center; gap:16px; flex-shrink:0; }
+.psite__icon{ color:#3A3036; position:relative; display:flex; }
+.psite__icon svg{ width:21px; height:21px; }
+.psite__badge{ position:absolute; inset-block-start:-5px; inset-inline-end:-6px; min-width:15px; height:15px; padding-inline:3px; border-radius:999px; background:var(--rose-gold); color:#fff; font:600 9.5px/15px var(--font-ui); text-align:center; }
+.psite__sep{ width:1px; height:20px; background:var(--champagne); }
+
+/* Locale switch */
+.plocale{ display:flex; align-items:center; gap:6px; }
+.plocale button{ border:0; background:none; padding:0; cursor:pointer; font:600 12.5px/1 var(--font-ui); color:var(--mist); }
+.plocale button[data-locale="ar"]{ font-family:var(--font-ar); font-size:14px; }
+.plocale button.is-active{ color:var(--plum-ink); }
+.plocale span{ color:#D8CCC0; }
+
+/* =================================================================
+   LISTING HEADER  (serif title · subtitle · result count)
+   ================================================================= */
+.phead{ padding:38px var(--pad-inline) 24px; }
+.phead__crumb{ font:500 12px/1 var(--font-ui); letter-spacing:.04em; color:var(--mist); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+[dir="rtl"] .phead__crumb{ font-family:var(--font-ar); font-size:12.5px; }
+.phead__crumb .sep{ color:#D8CCC0; }
+.phead__row{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.phead__title{ font-family:var(--font-serif); font-weight:600; font-size:clamp(34px,4.6vw,50px); line-height:1.04; margin:0; color:var(--plum-ink); }
+[dir="rtl"] .phead__title{ font-family:var(--font-ar); font-weight:700; letter-spacing:0; }
+.phead__sub{ margin:10px 0 0; font-size:15px; line-height:1.5; color:var(--mauve-gray); max-width:48ch; }
+[dir="rtl"] .phead__sub{ font-size:15.5px; }
+.phead__count{ font:400 14px/1.4 var(--font-ui); color:var(--mauve-gray); white-space:nowrap; padding-block-end:4px; }
+[dir="rtl"] .phead__count{ font-family:var(--font-ar); }
+.phead__count b{ font-weight:700; color:var(--plum-ink); }
+.phead hr{ border:0; border-block-start:1px solid var(--champagne); margin:24px 0 0; }
+
+/* =================================================================
+   PAGE LAYOUT  ·  sidebar (DOM-first → RIGHT in RTL, LEFT in LTR) + main
+   ================================================================= */
+.plp{ display:grid; grid-template-columns:272px 1fr; gap:36px; align-items:start;
+      padding:28px var(--pad-inline) 80px; max-width:1600px; margin-inline:auto; }
+
+/* =================================================================
+   FILTER SIDEBAR  (peach-soft tint separates the filter zone)
+   ================================================================= */
+.pside{ position:sticky; top:84px; align-self:start;
+  background:linear-gradient(180deg,var(--peach-soft),#FFF8F1);
+  border:1px solid var(--field-border); border-radius:var(--radius-lg);
+  padding:6px 22px 22px; box-shadow:var(--shadow-soft); }
+.pside__head{ display:flex; align-items:center; justify-content:space-between; padding-block:18px 14px; border-block-end:1px solid var(--hairline); }
+.pside__head h2{ margin:0; display:flex; align-items:center; gap:9px; font:600 13px/1 var(--font-ui); letter-spacing:.02em; color:var(--plum-ink); }
+[dir="rtl"] .pside__head h2{ font-family:var(--font-ar); font-weight:700; font-size:14.5px; }
+.pside__head svg{ width:16px; height:16px; color:var(--rose-gold); }
+.pside__clear{ border:0; background:none; cursor:pointer; font:500 12.5px/1 var(--font-ui); color:var(--rose-gold-deep); }
+[dir="rtl"] .pside__clear{ font-family:var(--font-ar); }
+.pside__clear:hover{ text-decoration:underline; }
+
+.pfilt{ padding-block:18px; border-block-end:1px solid var(--hairline); }
+.pfilt:last-child{ border-block-end:0; }
+.pfilt__t{ margin:0 0 14px; font:600 11px/1 var(--font-ui); letter-spacing:.12em; text-transform:uppercase; color:var(--mauve-gray); }
+[dir="rtl"] .pfilt__t{ font-family:var(--font-ar); letter-spacing:.02em; font-size:13px; text-transform:none; }
+
+/* Category list */
+.pcat{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+.pcat button{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  border:0; background:none; cursor:pointer; padding:8px 10px; border-radius:9px;
+  font:500 14px/1 var(--font-ui); color:var(--mauve-gray); text-align:start; transition:background .15s,color .15s; }
+[dir="rtl"] .pcat button{ font-family:var(--font-ar); font-size:14.5px; }
+.pcat button:hover{ background:rgba(183,110,121,.07); color:var(--plum-ink); }
+.pcat button.is-active{ background:var(--pearl); color:var(--rose-gold-deep); font-weight:700; box-shadow:inset 0 0 0 1px var(--field-border); }
+.pcat .n{ font:500 12px/1 var(--font-ui); color:var(--mist); font-variant-numeric:tabular-nums; }
+.pcat button.is-active .n{ color:var(--rose-gold); }
+
+/* Price slider */
+.pprice__read{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+.pprice__read .lab{ font:500 12.5px/1 var(--font-ui); color:var(--mauve-gray); }
+[dir="rtl"] .pprice__read .lab{ font-family:var(--font-ar); }
+.pprice__read .val{ font-family:var(--font-serif); font-weight:600; font-size:18px; color:var(--plum-ink); }
+.pprice__read .val .cur{ font-family:var(--font-ar); font-size:12px; color:var(--mauve-gray); margin-inline-start:3px; }
+.prange{ -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:999px; cursor:pointer;
+  background:linear-gradient(90deg,var(--rose-gold) 0%,var(--rose-gold) var(--fill,60%),#EAD9CB var(--fill,60%),#EAD9CB 100%); }
+[dir="rtl"] .prange{ background:linear-gradient(270deg,var(--rose-gold) 0%,var(--rose-gold) var(--fill,60%),#EAD9CB var(--fill,60%),#EAD9CB 100%); }
+.prange::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--pearl);
+  border:1px solid var(--rose-gold); box-shadow:0 2px 6px -1px rgba(154,85,96,.5); cursor:pointer; }
+.prange::-moz-range-thumb{ width:18px; height:18px; border:1px solid var(--rose-gold); border-radius:50%; background:var(--pearl); box-shadow:0 2px 6px -1px rgba(154,85,96,.5); cursor:pointer; }
+.pprice__ends{ display:flex; justify-content:space-between; margin-top:9px; font:500 11.5px/1 var(--font-ui); color:var(--mist); font-variant-numeric:tabular-nums; }
+
+/* Rating options */
+.prate{ display:flex; flex-direction:column; gap:3px; }
+.prate button{ display:flex; align-items:center; gap:9px; border:0; background:none; cursor:pointer;
+  padding:7px 10px; border-radius:9px; transition:background .15s; }
+.prate button:hover{ background:rgba(183,110,121,.07); }
+.prate button.is-active{ background:var(--pearl); box-shadow:inset 0 0 0 1px var(--field-border); }
+.prate .stars{ display:flex; gap:1px; }
+.prate .stars svg{ width:14px; height:14px; }
+.prate .lbl{ font:500 13px/1 var(--font-ui); color:var(--mauve-gray); }
+[dir="rtl"] .prate .lbl{ font-family:var(--font-ar); font-size:13.5px; }
+.prate button.is-active .lbl{ color:var(--plum-ink); font-weight:600; }
+
+/* Rentable toggle */
+.ptoggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; }
+.ptoggle__txt b{ display:block; font:600 13.5px/1.3 var(--font-ui); color:var(--plum-ink); }
+[dir="rtl"] .ptoggle__txt b{ font-family:var(--font-ar); font-weight:700; font-size:14.5px; }
+.ptoggle__txt span{ font:400 12px/1.3 var(--font-ui); color:var(--mist); }
+[dir="rtl"] .ptoggle__txt span{ font-family:var(--font-ar); font-size:12.5px; }
+.pswitch{ --on:0; flex-shrink:0; width:42px; height:24px; border-radius:999px; border:0; cursor:pointer; position:relative;
+  background:#E4D3C4; transition:background .2s; }
+.pswitch::after{ content:""; position:absolute; inset-block-start:3px; inset-inline-start:3px; width:18px; height:18px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .2s; }
+.pswitch.is-on{ background:var(--rose-gold); }
+.pswitch.is-on::after{ transform:translateX(18px); }
+[dir="rtl"] .pswitch.is-on::after{ transform:translateX(-18px); }
+
+/* =================================================================
+   MAIN COLUMN  ·  sort bar + chips + grid + pagination
+   ================================================================= */
+.pmain{ min-width:0; }
+
+.psort{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+.psort__left{ font:400 13.5px/1.4 var(--font-ui); color:var(--mauve-gray); }
+[dir="rtl"] .psort__left{ font-family:var(--font-ar); font-size:14px; }
+.psort__left b{ font-weight:700; color:var(--plum-ink); }
+.psort__filter-btn{ display:none; }
+
+/* Select control (sort) */
+.pselect{ position:relative; }
+.pselect select{ -webkit-appearance:none; appearance:none; cursor:pointer;
+  height:42px; padding-inline:16px 40px; border-radius:999px;
+  background:var(--pearl); border:1px solid var(--field-border); color:var(--plum-ink);
+  font:500 13.5px/1 var(--font-ui); outline:none; transition:border-color .15s,box-shadow .15s; }
+[dir="rtl"] .pselect select{ font-family:var(--font-ar); font-size:14px; padding-inline:16px 40px; }
+.pselect select:focus{ border-color:var(--rose-gold); box-shadow:0 0 0 3px var(--focus-ring); }
+.pselect svg{ position:absolute; inset-block-start:50%; inset-inline-end:15px; transform:translateY(-50%); width:16px; height:16px; color:var(--mauve-gray); pointer-events:none; }
+
+/* Active filter chips */
+.pchips{ display:flex; flex-wrap:wrap; gap:9px; margin-bottom:22px; min-height:0; }
+.pchips:empty{ display:none; }
+.pchip{ display:inline-flex; align-items:center; gap:7px; height:34px; padding-inline:14px; border-radius:999px;
+  background:var(--peach-soft); border:1px solid #F3DECB; color:var(--rose-gold-deep);
+  font:600 13px/1 var(--font-ui); }
+[dir="rtl"] .pchip{ font-family:var(--font-ar); font-size:13.5px; }
+.pchip button{ border:0; background:none; cursor:pointer; color:var(--rose-gold-deep); display:flex; padding:0; opacity:.7; }
+.pchip button:hover{ opacity:1; }
+.pchip button svg{ width:13px; height:13px; }
+.pchip--clear{ background:none; border:1px dashed #E3CDBE; color:var(--mauve-gray); cursor:pointer; }
+.pchip--clear:hover{ color:var(--plum-ink); border-color:var(--rose-gold); }
+
+/* =================================================================
+   PRODUCT GRID  ·  2 → 3 → 4 columns, generous gap
+   ================================================================= */
+.pgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:26px 22px; }
+@media (max-width:1180px){ .pgrid{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:560px){ .pgrid{ grid-template-columns:repeat(2,1fr); gap:18px 14px; } }
+
+/* =================================================================
+   PRODUCT CARD  ·  media → brand → title → rating → price → action
+   ================================================================= */
+.pcard{ background:var(--pearl); border:1px solid var(--hairline); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-soft); overflow:hidden; display:flex; flex-direction:column;
+  transition:transform .28s cubic-bezier(.2,.7,.3,1), box-shadow .28s, border-color .28s; }
+.pcard:hover{ transform:translateY(-6px); box-shadow:var(--shadow-raised); border-color:var(--field-border); }
+
+/* Media — portrait, zero CLS via aspect-ratio. (Striped placeholder → swap for <img>.) */
+.pcard__media{ position:relative; aspect-ratio:3/4; overflow:hidden; background:var(--tint,#F6EADF); }
+.pcard__ph{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+  transition:transform .5s cubic-bezier(.2,.7,.3,1);
+  background-image:repeating-linear-gradient(135deg, rgba(255,255,255,.40) 0 1px, transparent 1px 13px); }
+.pcard:hover .pcard__ph{ transform:scale(1.05); }
+.pcard__ph svg{ width:46px; height:46px; opacity:.5; }
+.pcard__ph span{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:rgba(123,90,80,.6); }
+
+/* Badge (top-start) + wishlist (top-end) — flip automatically in RTL */
+.pcard__badge{ position:absolute; inset-block-start:12px; inset-inline-start:12px;
+  display:inline-flex; align-items:center; gap:5px; height:25px; padding-inline:10px; border-radius:999px;
+  font:700 10.5px/1 var(--font-ui); letter-spacing:.02em; backdrop-filter:blur(3px); }
+[dir="rtl"] .pcard__badge{ font-family:var(--font-ar); font-size:11.5px; }
+.pcard__badge svg{ width:12px; height:12px; }
+.badge--rentable{ background:rgba(255,251,247,.9); color:var(--rose-gold-deep); box-shadow:inset 0 0 0 1px #F0D9C9; }
+.badge--verified{ background:rgba(255,251,247,.9); color:#9A7B16; box-shadow:inset 0 0 0 1px #EBDDB6; }
+.badge--bestseller{ background:var(--rose-gold); color:#fff; }
+.badge--new{ background:var(--plum-ink); color:var(--ivory); }
+
+.pcard__wish{ position:absolute; inset-block-start:10px; inset-inline-end:10px; width:34px; height:34px; border-radius:50%;
+  border:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  background:rgba(255,251,247,.82); backdrop-filter:blur(3px); color:var(--mauve-gray);
+  box-shadow:0 2px 6px -2px rgba(80,40,46,.25); transition:color .2s, transform .15s, background .2s; }
+.pcard__wish svg{ width:18px; height:18px; }
+.pcard__wish:hover{ transform:scale(1.08); color:var(--rose-gold); }
+.pcard__wish.is-on{ color:var(--rose-gold); }
+.pcard__wish.is-on svg{ fill:var(--rose-gold); }
+
+/* Body */
+.pcard__body{ padding:15px 14px 16px; display:flex; flex-direction:column; flex:1; }
+.pcard__brand{ font:600 11px/1 var(--font-ui); letter-spacing:.08em; text-transform:uppercase; color:var(--mist); margin-bottom:7px; }
+.pcard__title{ margin:0; font:500 15px/1.35 var(--font-ui); color:var(--plum-ink);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.7em; }
+[dir="rtl"] .pcard__title{ font-family:var(--font-ar); font-weight:500; font-size:15.5px; }
+.pcard__meta{ display:flex; align-items:center; gap:6px; margin-top:9px; }
+.pcard__stars{ display:flex; gap:1px; }
+.pcard__stars svg{ width:13px; height:13px; }
+.pcard__rate{ font:600 12.5px/1 var(--font-ui); color:var(--plum-ink); font-variant-numeric:tabular-nums; }
+.pcard__rev{ font:400 12px/1 var(--font-ui); color:var(--mist); font-variant-numeric:tabular-nums; }
+.pcard__foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; padding-block-start:14px; }
+.pcard__price{ font-family:var(--font-serif); font-weight:600; font-size:19.5px; color:var(--plum-ink); font-variant-numeric:tabular-nums; white-space:nowrap; min-width:0; overflow:hidden; flex-shrink:1; }
+.pcard__price .cur{ font-family:var(--font-ar); font-size:12.5px; font-weight:500; color:var(--mauve-gray); margin-inline-start:3px; }
+.pcard__price .from{ font-family:var(--font-ar); font-size:11px; color:var(--mist); display:block; margin-block-end:1px; }
+
+/* One quiet rose-gold action */
+.pcard__action{ flex-shrink:0; white-space:nowrap; display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  height:36px; padding-inline:13px; border-radius:999px; cursor:pointer;
+  border:1px solid #F0D9C9; background:var(--peach-soft); color:var(--rose-gold-deep);
+  font:600 12.5px/1 var(--font-ui); transition:background .18s,color .18s,box-shadow .18s,transform .12s; }
+[dir="rtl"] .pcard__action{ font-family:var(--font-ar); font-size:13px; }
+.pcard__action svg{ width:15px; height:15px; }
+.pcard__action:hover{ background:linear-gradient(180deg,#C07C86,var(--rose-gold)); color:#fff; border-color:transparent;
+  box-shadow:0 8px 16px -8px rgba(154,85,96,.7), inset 0 0 0 1px rgba(201,162,39,.3); }
+.pcard__action:active{ transform:translateY(1px); }
+
+/* =================================================================
+   SKELETON  (matches the real card shape)
+   ================================================================= */
+.skel{ background:var(--pearl); border:1px solid var(--hairline); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-soft); }
+.skel__media{ aspect-ratio:3/4; }
+.skel__body{ padding:15px 16px 18px; display:flex; flex-direction:column; gap:10px; }
+.skel__line{ height:11px; border-radius:6px; }
+.shimmer{ background:linear-gradient(100deg,#F3E7DC 30%,#FBF3EA 50%,#F3E7DC 70%); background-size:200% 100%; animation:shimmer 1.3s linear infinite; }
+@keyframes shimmer{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+
+/* =================================================================
+   EMPTY STATE  (peach circle · headline · guidance · reset CTA)
+   ================================================================= */
+.pempty{ display:none; flex-direction:column; align-items:center; text-align:center; padding:70px 20px 90px; }
+.pempty.is-shown{ display:flex; }
+.pempty__ic{ width:88px; height:88px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 38% 32%,var(--peach-soft),var(--peach)); margin-bottom:24px; }
+.pempty__ic svg{ width:38px; height:38px; color:var(--rose-gold); }
+.pempty h3{ font-family:var(--font-serif); font-weight:600; font-size:26px; line-height:1.25; color:var(--plum-ink); margin:0 0 12px; }
+[dir="rtl"] .pempty h3{ font-family:var(--font-ar); font-weight:700; }
+.pempty p{ font-size:15px; line-height:1.6; color:var(--mauve-gray); max-width:40ch; margin:0 0 24px; }
+[dir="rtl"] .pempty p{ font-size:15.5px; }
+.pempty__cta{ height:46px; padding-inline:26px; border:0; border-radius:999px; cursor:pointer;
+  background:linear-gradient(180deg,#C07C86,var(--rose-gold)); color:#fff; font:600 14.5px/1 var(--font-ui);
+  box-shadow:0 12px 24px -10px rgba(154,85,96,.7), inset 0 0 0 1px rgba(201,162,39,.3); transition:transform .15s,background .2s; }
+[dir="rtl"] .pempty__cta{ font-family:var(--font-ar); font-weight:700; }
+.pempty__cta:hover{ background:var(--rose-gold-deep); transform:translateY(-1px); }
+
+/* =================================================================
+   PAGINATION  (elegant, not heavy)
+   ================================================================= */
+.ppage{ display:flex; align-items:center; justify-content:center; gap:6px; margin-top:54px; }
+.ppage button{ min-width:40px; height:40px; padding-inline:6px; border-radius:11px; cursor:pointer;
+  border:1px solid transparent; background:none; color:var(--mauve-gray);
+  font:600 14px/1 var(--font-ui); font-variant-numeric:tabular-nums; transition:background .15s,color .15s,border-color .15s; }
+.ppage button:hover:not(:disabled){ background:var(--pearl); color:var(--plum-ink); border-color:var(--field-border); }
+.ppage button.is-active{ background:var(--plum-ink); color:var(--ivory); }
+.ppage button:disabled{ opacity:.35; cursor:not-allowed; }
+.ppage .dots{ color:var(--mist); padding-inline:2px; }
+.ppage .arrow svg{ width:17px; height:17px; }
+[dir="rtl"] .ppage .arrow svg{ transform:scaleX(-1); }
+
+/* =================================================================
+   MOBILE  ·  sidebar collapses → "Filters" sheet drawer
+   ================================================================= */
+.psheet-backdrop{ display:none; }
+@media (max-width:860px){
+  .plp{ grid-template-columns:1fr; gap:0; }
+  .pside{ position:fixed; inset-block:0; inset-inline-end:0; width:min(360px,86vw); z-index:120; border-radius:0;
+    transform:translateX(100%); transition:transform .3s ease; overflow-y:auto; box-shadow:var(--shadow-raised);
+    background:linear-gradient(180deg,var(--peach-soft),#FFF8F1); }
+  [dir="rtl"] .pside{ transform:translateX(-100%); }
+  .pside.is-open{ transform:translateX(0); }
+  .psort__filter-btn{ display:inline-flex; align-items:center; gap:8px; height:42px; padding-inline:18px; border-radius:999px;
+    border:1px solid var(--field-border); background:var(--pearl); color:var(--plum-ink); cursor:pointer; font:600 13.5px/1 var(--font-ui); }
+  [dir="rtl"] .psort__filter-btn{ font-family:var(--font-ar); }
+  .psort__filter-btn svg{ width:17px; height:17px; }
+  .psort__filter-btn .n{ background:var(--rose-gold); color:#fff; min-width:18px; height:18px; padding-inline:4px; border-radius:999px; font-size:11px; display:inline-flex; align-items:center; justify-content:center; }
+  .psheet-backdrop.is-shown{ display:block; position:fixed; inset:0; z-index:110; background:rgba(42,34,40,.4); backdrop-filter:blur(2px); }
+  .pside__close{ display:flex !important; }
+}
+.pside__close{ display:none; border:0; background:none; cursor:pointer; color:var(--mauve-gray); padding:4px; }
+.pside__close svg{ width:20px; height:20px; }
+
+/* =================================================================
+   DEMO STATE SWITCHER  (preview-only — remove in production)
+   ================================================================= */
+.demo{ position:fixed; inset-block-end:18px; inset-inline-start:18px; z-index:200;
+  display:flex; align-items:center; gap:4px; padding:5px; border-radius:999px;
+  background:rgba(42,34,40,.92); backdrop-filter:blur(8px); box-shadow:0 10px 30px -8px rgba(0,0,0,.4); }
+.demo span{ color:#C9B8AE; font:600 10px/1 var(--font-ui); letter-spacing:.1em; text-transform:uppercase; padding-inline:10px 4px; }
+.demo button{ border:0; cursor:pointer; background:none; color:#E6D8CE; font:600 12px/1 var(--font-ui);
+  padding:8px 13px; border-radius:999px; transition:background .15s,color .15s; }
+.demo button.is-active{ background:var(--ivory); color:var(--plum-ink); }
+</style>
+</head>
+
+<body>
+
+<!-- ===================== SLIM SITE BAR ===================== -->
+<header class="psite">
+  <a class="psite__logo" href="#" aria-label="Princess — home">
+    <svg class="psite__mark" viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="50,12 37,33 28,50 50,50" fill="#E1B2A9"/>
+      <polygon points="50,12 50,50 72,50 63,33" fill="#B76E79"/>
+      <polygon points="50,50 28,50 37,67 50,88" fill="#B76E79"/>
+      <polygon points="50,50 50,88 63,67 72,50" fill="#84495A"/>
+      <polygon points="50,12 40,30 48,43 59,31" fill="#F2D6CB"/>
+      <polygon points="50,12 63,33 72,50 63,67 50,88 37,67 28,50 37,33" fill="none" stroke="#5E3140" stroke-width="1" stroke-opacity=".5" stroke-linejoin="round"/>
+    </svg>
+    <span class="psite__word">Princess</span>
+  </a>
+  <nav class="psite__links" aria-label="Primary">
+    <a class="psite__link is-active" href="#" data-i18n="nav_products">المنتجات</a>
+    <a class="psite__link" href="#" data-i18n="nav_rentals">التأجير</a>
+    <a class="psite__link" href="#" data-i18n="nav_services">الخدمات</a>
+    <a class="psite__link" href="#" data-i18n="nav_planners">تنظيم المناسبات</a>
+  </nav>
+  <div class="psite__right">
+    <a class="psite__icon" href="#" aria-label="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.7"/><line x1="15.6" y1="15.6" x2="20.5" y2="20.5" stroke-linecap="round"/></svg></a>
+    <a class="psite__icon" href="#" aria-label="bag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.6 8H18.4l-0.9 11.4a1.3 1.3 0 0 1-1.3 1.2H7.8a1.3 1.3 0 0 1-1.3-1.2Z" stroke-linejoin="round"/><path d="M9 8V6.4a3 3 0 0 1 6 0V8" stroke-linecap="round"/></svg>
+      <span class="psite__badge">2</span>
+    </a>
+    <span class="psite__sep"></span>
+    <div class="plocale" role="group" aria-label="Language">
+      <button type="button" data-locale="ar" class="is-active" lang="ar">ع</button>
+      <span aria-hidden="true">|</span>
+      <button type="button" data-locale="en">EN</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== LISTING HEADER ===================== -->
+<section class="phead">
+  <div class="phead__crumb">
+    <span data-i18n="crumb_home">الرئيسية</span><span class="sep">/</span><span data-i18n="crumb_products">المنتجات</span>
+  </div>
+  <div class="phead__row">
+    <div>
+      <h1 class="phead__title" data-i18n="head_title">المنتجات</h1>
+      <p class="phead__sub" data-i18n="head_sub">أزياء ومجوهرات وعطور وخدمات تجميل — مختارة بعناية من أرقى دور الجمال.</p>
+    </div>
+    <div class="phead__count"><b class="tnum" data-count>—</b> <span data-i18n="count_label">منتج</span></div>
+  </div>
+  <hr>
+</section>
+
+<!-- ===================== LAYOUT ===================== -->
+<div class="plp">
+
+  <!-- ---------- FILTER SIDEBAR (right in RTL) ---------- -->
+  <aside class="pside" id="sidebar" aria-label="Filters">
+    <div class="pside__head">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+        <span data-i18n="filters">الفلاتر</span>
+      </h2>
+      <button type="button" class="pside__clear" data-clear data-i18n="clear_all">مسح الكل</button>
+      <button type="button" class="pside__close" data-sheet-close aria-label="close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+    </div>
+
+    <!-- Category -->
+    <div class="pfilt">
+      <p class="pfilt__t" data-i18n="f_category">الفئة</p>
+      <ul class="pcat" id="catList"></ul>
+    </div>
+
+    <!-- Price -->
+    <div class="pfilt">
+      <p class="pfilt__t" data-i18n="f_price">السعر</p>
+      <div class="pprice__read">
+        <span class="lab" data-i18n="price_upto">حتى</span>
+        <span class="val"><span class="tnum" id="priceVal">15,000</span><span class="cur" data-i18n="cur">ر.س</span></span>
+      </div>
+      <input type="range" class="prange" id="priceRange" min="0" max="15000" step="100" value="15000" aria-label="Max price">
+      <div class="pprice__ends"><span>0</span><span>15,000</span></div>
+    </div>
+
+    <!-- Rating -->
+    <div class="pfilt">
+      <p class="pfilt__t" data-i18n="f_rating">التقييم</p>
+      <div class="prate" id="rateList"></div>
+    </div>
+
+    <!-- Rentable -->
+    <div class="pfilt">
+      <label class="ptoggle">
+        <span class="ptoggle__txt">
+          <b data-i18n="rentable_t">قابل للتأجير فقط</b>
+          <span data-i18n="rentable_s">استئجار بدل الشراء</span>
+        </span>
+        <button type="button" class="pswitch" id="rentSwitch" role="switch" aria-checked="false" aria-label="Rentable only"></button>
+      </label>
+    </div>
+  </aside>
+  <div class="psheet-backdrop" data-sheet-close></div>
+
+  <!-- ---------- MAIN COLUMN ---------- -->
+  <main class="pmain">
+    <div class="psort">
+      <div class="psort__left">
+        <button type="button" class="psort__filter-btn" data-sheet-open>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+          <span data-i18n="filters">الفلاتر</span><span class="n" data-filter-count>0</span>
+        </button>
+        <span data-i18n="showing">عرض</span> <b class="tnum" data-count>—</b> <span data-i18n="count_label">منتج</span>
+      </div>
+      <div class="pselect">
+        <select id="sortSelect" aria-label="Sort">
+          <option value="newest" data-i18n="sort_newest">الأحدث</option>
+          <option value="price-asc" data-i18n="sort_pa">السعر: من الأقل للأعلى</option>
+          <option value="price-desc" data-i18n="sort_pd">السعر: من الأعلى للأقل</option>
+          <option value="rating" data-i18n="sort_rating">الأعلى تقييماً</option>
+        </select>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+
+    <!-- active filter chips -->
+    <div class="pchips" id="chips"></div>
+
+    <!-- grid / skeleton / empty -->
+    <div class="pgrid" id="grid"></div>
+    <div class="pempty" id="empty">
+      <div class="pempty__ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.7"/><line x1="15.8" y1="15.8" x2="20.5" y2="20.5" stroke-linecap="round"/><line x1="8.3" y1="8.3" x2="12.7" y2="12.7" stroke-linecap="round"/><line x1="12.7" y1="8.3" x2="8.3" y2="12.7" stroke-linecap="round"/></svg>
+      </div>
+      <h3 data-i18n="empty_t">لا توجد نتائج مطابقة</h3>
+      <p data-i18n="empty_p">جرّبي توسيع نطاق السعر أو إزالة بعض الفلاتر للعثور على ما يناسبك.</p>
+      <button type="button" class="pempty__cta" data-clear data-i18n="empty_cta">إعادة ضبط الفلاتر</button>
+    </div>
+
+    <!-- pagination -->
+    <nav class="ppage" id="pager" aria-label="Pagination"></nav>
+  </main>
+</div>
+
+<!-- ===================== DEMO STATE SWITCHER (remove in production) ===================== -->
+<div class="demo" role="group" aria-label="Preview states">
+  <span>STATE</span>
+  <button type="button" data-state="results" class="is-active">Results</button>
+  <button type="button" data-state="loading">Loading</button>
+  <button type="button" data-state="empty">Empty</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     i18n — RTL default (Arabic). Brands stay Latin in both langs.
+     ============================================================ */
+  var I18N = {
+    ar:{ nav_products:"المنتجات", nav_rentals:"التأجير", nav_services:"الخدمات", nav_planners:"تنظيم المناسبات",
+      crumb_home:"الرئيسية", crumb_products:"المنتجات", head_title:"المنتجات",
+      head_sub:"أزياء ومجوهرات وعطور وخدمات تجميل — مختارة بعناية من أرقى دور الجمال.",
+      count_label:"منتج", showing:"عرض", filters:"الفلاتر", clear_all:"مسح الكل",
+      f_category:"الفئة", f_price:"السعر", f_rating:"التقييم", price_upto:"حتى", cur:"ر.س",
+      rentable_t:"قابل للتأجير فقط", rentable_s:"استئجار بدل الشراء",
+      sort_newest:"الأحدث", sort_pa:"السعر: من الأقل للأعلى", sort_pd:"السعر: من الأعلى للأقل", sort_rating:"الأعلى تقييماً",
+      empty_t:"لا توجد نتائج مطابقة", empty_p:"جرّبي توسيع نطاق السعر أو إزالة بعض الفلاتر للعثور على ما يناسبك.", empty_cta:"إعادة ضبط الفلاتر",
+      cat_all:"الكل", cat_dresses:"فساتين", cat_abayas:"عبايات", cat_jewelry:"مجوهرات", cat_perfume:"عطور",
+      cat_bags:"حقائب", cat_skincare:"العناية بالبشرة", cat_makeup:"مكياج", cat_shoes:"أحذية", cat_services:"خدمات التجميل",
+      b_rentable:"قابل للتأجير", b_verified:"موثّق", b_bestseller:"الأكثر مبيعاً", b_new:"جديد",
+      rate_any:"كل التقييمات", rate_n:"فأكثر", add:"إضافة", book:"احجزي", rentfrom:"تأجير من", ph:"صورة المنتج" },
+    en:{ nav_products:"Products", nav_rentals:"Rentals", nav_services:"Services", nav_planners:"Event Planners",
+      crumb_home:"Home", crumb_products:"Products", head_title:"Products",
+      head_sub:"Fashion, jewelry, fragrance and beauty services — curated from the finest beauty houses.",
+      count_label:"products", showing:"Showing", filters:"Filters", clear_all:"Clear all",
+      f_category:"Category", f_price:"Price", f_rating:"Rating", price_upto:"Up to", cur:"SAR",
+      rentable_t:"Rentable only", rentable_s:"Rent instead of buy",
+      sort_newest:"Newest", sort_pa:"Price: Low to High", sort_pd:"Price: High to Low", sort_rating:"Top rated",
+      empty_t:"No matching results", empty_p:"Try widening the price range or removing a filter to find your match.", empty_cta:"Reset filters",
+      cat_all:"All", cat_dresses:"Dresses", cat_abayas:"Abayas", cat_jewelry:"Jewelry", cat_perfume:"Fragrance",
+      cat_bags:"Bags", cat_skincare:"Skincare", cat_makeup:"Makeup", cat_shoes:"Shoes", cat_services:"Beauty Services",
+      b_rentable:"Rentable", b_verified:"Verified", b_bestseller:"Bestseller", b_new:"New",
+      rate_any:"All ratings", rate_n:"& up", add:"Add", book:"Book", rentfrom:"Rent from", ph:"product shot" }
+  };
+
+  /* ============================================================
+     DATA — the /products API response shape (12 sample rows)
+     ============================================================ */
+  var CATS = ["dresses","abayas","jewelry","perfume","bags","skincare","makeup","shoes","services"];
+  var DATA = [
+    { id:1,  cat:"dresses", brand:"Maison Roya",  price:4850, rating:4.9, reviews:212, badge:"bestseller", rentable:false, tint:"#F3E0DA", ar:"فستان سهرة مطرّز بالكريستال", en:"Crystal-Embroidered Evening Gown" },
+    { id:2,  cat:"abayas",  brand:"Dār Lila",     price:2200, rating:4.8, reviews:156, badge:"rentable",   rentable:true,  tint:"#F4E7D6", ar:"عباية مطرزة بخيوط الذهب",      en:"Gold-Thread Embroidered Abaya" },
+    { id:3,  cat:"jewelry", brand:"Atelier Noor", price:12400,rating:5.0, reviews:48,  badge:"verified",   rentable:false, tint:"#EFE7E9", ar:"عقد ألماس مرصّع",              en:"Pavé Diamond Necklace" },
+    { id:4,  cat:"perfume", brand:"Lumière",      price:690,  rating:4.7, reviews:309, badge:null,        rentable:false, tint:"#F6EBDD", ar:"عطر العود الملكي",            en:"Royal Oud Eau de Parfum" },
+    { id:5,  cat:"bags",    brand:"Seraphine",    price:3150, rating:4.8, reviews:97,  badge:"new",       rentable:false, tint:"#F1E2DC", ar:"حقيبة يد من الجلد الإيطالي",   en:"Italian Leather Top-Handle Bag" },
+    { id:6,  cat:"skincare",brand:"Yasmine",      price:420,  rating:4.6, reviews:524, badge:null,        rentable:false, tint:"#F5ECE0", ar:"كريم الترطيب الفاخر",          en:"Rich Hydrating Crème" },
+    { id:7,  cat:"jewelry", brand:"Atelier Noor", price:5600, rating:4.9, reviews:33,  badge:"rentable",   rentable:true,  tint:"#EFE7E9", ar:"طقم مجوهرات الزفاف",          en:"Bridal Jewelry Set" },
+    { id:8,  cat:"shoes",   brand:"Maison Roya",  price:1290, rating:4.5, reviews:61,  badge:null,        rentable:false, tint:"#F3E0DA", ar:"حذاء كعب من الساتان",          en:"Satin Stiletto Heels" },
+    { id:9,  cat:"services",brand:"Studio Lila",  price:950,  rating:4.9, reviews:188, badge:"verified",   rentable:false, tint:"#F4E7D6", ar:"جلسة مكياج عروس",             en:"Bridal Makeup Session" },
+    { id:10, cat:"makeup",  brand:"Lumière",      price:180,  rating:4.7, reviews:742, badge:null,        rentable:false, tint:"#F6EBDD", ar:"أحمر شفاه مخملي",             en:"Velvet Matte Lipstick" },
+    { id:11, cat:"dresses", brand:"Maison Roya",  price:8900, rating:5.0, reviews:27,  badge:"rentable",   rentable:true,  tint:"#F1E2DC", ar:"فستان زفاف من الدانتيل",       en:"Lace Bridal Gown" },
+    { id:12, cat:"abayas",  brand:"Dār Lila",     price:880,  rating:4.6, reviews:143, badge:"new",       rentable:false, tint:"#F5ECE0", ar:"عباية كاجوال من الكتان",       en:"Linen Day Abaya" }
+  ];
+  // newest order = reverse of declared order (highest id = newest)
+  var NEWEST = DATA.slice().sort(function(a,b){ return b.id - a.id; }).map(function(p){ return p.id; });
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var S = { locale:"ar", category:"all", maxPrice:15000, minRating:0, rentable:false, sort:"newest", page:1, view:"results" };
+  var PER_PAGE = 8;
+  function t(k){ return I18N[S.locale][k] || k; }
+  var fmt = function(n){ return n.toLocaleString("en-US"); };
+
+  /* SVG helpers */
+  function star(fill){ return '<svg viewBox="0 0 24 24" fill="'+(fill?'#C9A227':'none')+'" stroke="'+(fill?'#C9A227':'#CDBBC0')+'" stroke-width="1.4" stroke-linejoin="round"><polygon points="12 3 14.6 9 21 9.5 16.2 13.8 17.7 20 12 16.6 6.3 20 7.8 13.8 3 9.5 9.4 9"/></svg>'; }
+  function stars(r){ var h=""; for(var i=1;i<=5;i++){ h+=star(i<=Math.round(r)); } return h; }
+  function heart(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.6-9.2-9C1.3 8 2.6 4.8 5.8 4.8c2 0 3.2 1.2 4.2 2.6 1-1.4 2.2-2.6 4.2-2.6 3.2 0 4.5 3.2 3 6.2C19 15.4 12 20 12 20Z" stroke-linejoin="round"/></svg>'; }
+  function plus(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'; }
+  function gem(){ return '<svg viewBox="0 0 100 100"><polygon points="50,16 33,38 26,52 50,52" fill="#D8A6A8"/><polygon points="50,16 50,52 74,52 67,38" fill="#C58D93"/><polygon points="50,52 26,52 36,70 50,86" fill="#C58D93"/><polygon points="50,52 50,86 64,70 74,52" fill="#A66E76"/></svg>'; }
+
+  /* ============================================================
+     PRODUCT CARD TEMPLATE  →  maps to <ProductCard>
+     ============================================================ */
+  function card(p){
+    var title = p[S.locale];
+    var badgeHtml = p.badge ? '<span class="pcard__badge badge--'+p.badge+'">'+
+        (p.badge==="verified"?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'')+
+        t("b_"+p.badge)+'</span>' : '';
+    var priceHtml = p.rentable
+      ? '<div class="pcard__price"><span class="from">'+t("rentfrom")+'</span>'+fmt(Math.round(p.price*0.12))+'<span class="cur">'+t("cur")+'</span></div>'
+      : '<div class="pcard__price">'+fmt(p.price)+'<span class="cur">'+t("cur")+'</span></div>';
+    var actionLabel = p.cat==="services" ? t("book") : t("add");
+    return ''+
+    '<article class="pcard" data-id="'+p.id+'">'+
+      '<div class="pcard__media" style="--tint:'+p.tint+'">'+
+        '<div class="pcard__ph">'+gem()+'<span>'+t("ph")+'</span></div>'+
+        badgeHtml+
+        '<button class="pcard__wish" type="button" aria-label="wishlist" aria-pressed="false">'+heart()+'</button>'+
+      '</div>'+
+      '<div class="pcard__body">'+
+        '<div class="pcard__brand">'+p.brand+'</div>'+
+        '<h3 class="pcard__title">'+title+'</h3>'+
+        '<div class="pcard__meta">'+
+          '<span class="pcard__stars">'+stars(p.rating)+'</span>'+
+          '<span class="pcard__rate tnum">'+p.rating.toFixed(1)+'</span>'+
+          '<span class="pcard__rev tnum">('+p.reviews+')</span>'+
+        '</div>'+
+        '<div class="pcard__foot">'+
+          priceHtml+
+          '<button class="pcard__action" type="button">'+plus()+actionLabel+'</button>'+
+        '</div>'+
+      '</div>'+
+    '</article>';
+  }
+
+  function skeleton(){
+    return '<div class="skel"><div class="skel__media shimmer"></div><div class="skel__body">'+
+      '<div class="skel__line shimmer" style="width:40%"></div>'+
+      '<div class="skel__line shimmer" style="width:85%"></div>'+
+      '<div class="skel__line shimmer" style="width:55%"></div>'+
+      '<div class="skel__line shimmer" style="width:45%;height:18px;margin-top:6px"></div>'+
+      '</div></div>';
+  }
+
+  /* ============================================================
+     FILTER + SORT
+     ============================================================ */
+  function filtered(){
+    return DATA.filter(function(p){
+      if(S.category!=="all" && p.cat!==S.category) return false;
+      if(p.price > S.maxPrice) return false;
+      if(p.rating < S.minRating) return false;
+      if(S.rentable && !p.rentable) return false;
+      return true;
+    });
+  }
+  function sorted(list){
+    var l = list.slice();
+    if(S.sort==="price-asc") l.sort(function(a,b){ return a.price-b.price; });
+    else if(S.sort==="price-desc") l.sort(function(a,b){ return b.price-a.price; });
+    else if(S.sort==="rating") l.sort(function(a,b){ return b.rating-a.rating || b.reviews-a.reviews; });
+    else l.sort(function(a,b){ return NEWEST.indexOf(a.id)-NEWEST.indexOf(b.id); });
+    return l;
+  }
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
+  var $ = function(s){ return document.querySelector(s); };
+  var grid=$("#grid"), empty=$("#empty"), pager=$("#pager"), chips=$("#chips");
+
+  function activeFilterCount(){
+    var n=0; if(S.category!=="all")n++; if(S.maxPrice<15000)n++; if(S.minRating>0)n++; if(S.rentable)n++; return n;
+  }
+
+  function renderChips(){
+    var c=[];
+    if(S.category!=="all") c.push({k:"category", label:t("cat_"+S.category)});
+    if(S.maxPrice<15000) c.push({k:"price", label:t("price_upto")+" "+fmt(S.maxPrice)+" "+t("cur")});
+    if(S.minRating>0) c.push({k:"rating", label:S.minRating.toFixed(1)+" ★ "+t("rate_n")});
+    if(S.rentable) c.push({k:"rentable", label:t("b_rentable")});
+    chips.innerHTML = c.map(function(x){
+      return '<span class="pchip">'+x.label+'<button type="button" data-chip="'+x.k+'" aria-label="remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button></span>';
+    }).join("") + (c.length>1 ? '<button type="button" class="pchip pchip--clear" data-clear>'+t("clear_all")+'</button>' : "");
+  }
+
+  function renderPager(total){
+    var pages = Math.max(1, Math.ceil(total/PER_PAGE));
+    if(S.page>pages) S.page=pages;
+    if(pages<=1){ pager.innerHTML=""; return; }
+    var h='<button class="arrow" '+(S.page===1?'disabled':'')+' data-page="'+(S.page-1)+'" aria-label="prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+    for(var i=1;i<=pages;i++){ h+='<button '+(i===S.page?'class="is-active"':'')+' data-page="'+i+'">'+i+'</button>'; }
+    h+='<button class="arrow" '+(S.page===pages?'disabled':'')+' data-page="'+(S.page+1)+'" aria-label="next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>';
+    pager.innerHTML=h;
+  }
+
+  function render(){
+    // loading state
+    if(S.view==="loading"){
+      grid.style.display="grid"; empty.classList.remove("is-shown"); pager.innerHTML="";
+      var sk=""; for(var i=0;i<8;i++) sk+=skeleton(); grid.innerHTML=sk;
+      document.querySelector("[data-count]").textContent="—"; renderChips(); syncControls(); return;
+    }
+    var list = sorted(filtered());
+    var forceEmpty = S.view==="empty";
+    document.querySelectorAll("[data-count]").forEach(function(el){ el.textContent = fmt(forceEmpty?0:list.length); });
+    renderChips();
+    syncControls();
+
+    if(forceEmpty || list.length===0){
+      grid.style.display="none"; grid.innerHTML=""; pager.innerHTML=""; empty.classList.add("is-shown"); return;
+    }
+    empty.classList.remove("is-shown"); grid.style.display="grid";
+    var start=(S.page-1)*PER_PAGE;
+    grid.innerHTML = list.slice(start, start+PER_PAGE).map(card).join("");
+    renderPager(list.length);
+  }
+
+  /* sync sidebar control states with S */
+  function syncControls(){
+    // categories
+    var counts = {}; CATS.forEach(function(c){ counts[c]=0; });
+    DATA.forEach(function(p){ counts[p.cat]++; });
+    var catHtml = '<li><button type="button" data-cat="all" class="'+(S.category==="all"?"is-active":"")+'">'+t("cat_all")+'<span class="n">'+DATA.length+'</span></button></li>';
+    CATS.forEach(function(c){
+      catHtml += '<li><button type="button" data-cat="'+c+'" class="'+(S.category===c?"is-active":"")+'">'+t("cat_"+c)+'<span class="n">'+counts[c]+'</span></button></li>';
+    });
+    $("#catList").innerHTML = catHtml;
+    // ratings
+    var rates=[0,4.5,4.7,4.9];
+    $("#rateList").innerHTML = rates.map(function(r){
+      var label = r===0 ? t("rate_any") : (r.toFixed(1)+" "+t("rate_n"));
+      var sv = r===0 ? "" : '<span class="stars">'+stars(r)+'</span>';
+      return '<button type="button" data-rate="'+r+'" class="'+(S.minRating===r?"is-active":"")+'">'+sv+'<span class="lbl">'+label+'</span></button>';
+    }).join("");
+    // price
+    $("#priceVal").textContent = fmt(S.maxPrice);
+    var rng=$("#priceRange"); rng.value=S.maxPrice;
+    rng.style.setProperty("--fill",(S.maxPrice/15000*100)+"%");
+    // rent
+    var sw=$("#rentSwitch"); sw.classList.toggle("is-on",S.rentable); sw.setAttribute("aria-checked",S.rentable);
+    // filter count badge (mobile)
+    document.querySelectorAll("[data-filter-count]").forEach(function(el){ el.textContent=activeFilterCount(); });
+  }
+
+  /* ============================================================
+     i18n apply
+     ============================================================ */
+  function applyLocale(){
+    document.documentElement.lang=S.locale;
+    document.documentElement.dir = S.locale==="ar" ? "rtl" : "ltr";
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent=t(el.dataset.i18n); });
+    document.querySelectorAll(".plocale button").forEach(function(b){ b.classList.toggle("is-active", b.dataset.locale===S.locale); });
+    render();
+  }
+
+  /* ============================================================
+     EVENTS
+     ============================================================ */
+  function resetFilters(){ S.category="all"; S.maxPrice=15000; S.minRating=0; S.rentable=false; S.page=1; if(S.view==="empty") S.view="results"; render(); }
+
+  // delegate clicks
+  document.addEventListener("click", function(e){
+    var el;
+    if((el=e.target.closest("[data-cat]"))){ S.category=el.dataset.cat; S.page=1; render(); }
+    else if((el=e.target.closest("[data-rate]"))){ var r=parseFloat(el.dataset.rate); S.minRating=(S.minRating===r?0:r); S.page=1; render(); }
+    else if((el=e.target.closest("[data-chip]"))){ var k=el.dataset.chip; if(k==="category")S.category="all"; if(k==="price")S.maxPrice=15000; if(k==="rating")S.minRating=0; if(k==="rentable")S.rentable=false; S.page=1; render(); }
+    else if(e.target.closest("[data-clear]")){ resetFilters(); }
+    else if((el=e.target.closest("[data-page]"))){ S.page=parseInt(el.dataset.page,10); render(); window.scrollTo({top:document.querySelector('.plp').offsetTop-70, behavior:'smooth'}); }
+    else if((el=e.target.closest(".pcard__wish"))){ var on=el.classList.toggle("is-on"); el.setAttribute("aria-pressed",on); }
+    else if(e.target.closest("[data-sheet-open]")){ $("#sidebar").classList.add("is-open"); document.querySelector(".psheet-backdrop").classList.add("is-shown"); }
+    else if(e.target.closest("[data-sheet-close]")){ $("#sidebar").classList.remove("is-open"); document.querySelector(".psheet-backdrop").classList.remove("is-shown"); }
+    else if((el=e.target.closest(".plocale button"))){ S.locale=el.dataset.locale; applyLocale(); }
+    else if((el=e.target.closest(".demo button"))){ document.querySelectorAll(".demo button").forEach(function(b){ b.classList.remove("is-active"); }); el.classList.add("is-active"); S.view=el.dataset.state; S.page=1; render(); }
+    else if((el=e.target.closest("#rentSwitch"))){ S.rentable=!S.rentable; S.page=1; render(); }
+  });
+
+  $("#priceRange").addEventListener("input", function(e){ S.maxPrice=parseInt(e.target.value,10); S.page=1; render(); });
+  $("#sortSelect").addEventListener("change", function(e){ S.sort=e.target.value; render(); });
+
+  // init
+  applyLocale();
+})();
+</script>
+
+</body>
+</html>
