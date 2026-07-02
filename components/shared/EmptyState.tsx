@@ -26,10 +26,10 @@ export function EmptyState({ icon: Icon, title, description, action, className }
       )}
     >
       <span
-        className="grid h-16 w-16 place-items-center rounded-full bg-secondary text-primary shadow-soft"
+        className="grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-muted to-secondary text-primary shadow-soft"
         aria-hidden
       >
-        <Icon className="h-8 w-8" />
+        <Icon className="h-9 w-9" />
       </span>
       <div className="flex flex-col gap-2">
         <p className="font-serif text-h4 text-foreground">{title}</p>

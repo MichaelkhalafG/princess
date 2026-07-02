@@ -68,8 +68,8 @@ export default async function ProductDetailPage({
   const images = parseProductImages(product.images);
   const vendor = await getPublicVendor(product.seller_id);
 
-  // Product title is seller-entered free text (could be ar OR en) → sans (which
-  // includes the Arabic fallback), never serif (Playfair lacks Arabic glyphs).
+  // Product title is seller-entered free text (could be ar OR en): ar → El Messiri
+  // (font-arabic), en → Marcellus (font-serif, which lacks Arabic glyphs).
   const headingFont = params.locale === "ar" ? "font-arabic font-bold" : "font-serif";
 
   return (

@@ -13,7 +13,7 @@ export const DEFAULT_LIMIT = 20;
 
 export interface CatalogFilters {
   category: string | null;
-  minPrice: number | null;
+  /** Single max-price ceiling (Direction A slider) → `?maxPrice=N`. */
   maxPrice: number | null;
   /** Rentable-only toggle (CR-01 §B) → `?rentable=1`. */
   rentable: boolean;
@@ -63,7 +63,6 @@ export function useFilters() {
   const limitRaw = Number(searchParams.get("limit"));
   const filters: CatalogFilters = {
     category: searchParams.get("category"),
-    minPrice: parseNonNegativeInt(searchParams.get("minPrice")),
     maxPrice: parseNonNegativeInt(searchParams.get("maxPrice")),
     rentable: searchParams.get("rentable") === "1",
     facets,
@@ -110,21 +109,14 @@ export function useFilters() {
     [commit],
   );
 
-  const setPrice = useCallback(
-    (next: { minPrice?: number | null; maxPrice?: number | null }) => {
+  // Single max-price ceiling — debounced so the slider commits on settle, not per drag frame.
+  const setMaxPrice = useCallback(
+    (value: number | null) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         commit((params) => {
-          if ("minPrice" in next) {
-            const v = next.minPrice;
-            if (v === null || v === undefined) params.delete("minPrice");
-            else params.set("minPrice", String(v));
-          }
-          if ("maxPrice" in next) {
-            const v = next.maxPrice;
-            if (v === null || v === undefined) params.delete("maxPrice");
-            else params.set("maxPrice", String(v));
-          }
+          if (value === null) params.delete("maxPrice");
+          else params.set("maxPrice", String(value));
         });
       }, 300);
     },
@@ -164,7 +156,6 @@ export function useFilters() {
 
   const isActive =
     filters.category !== null ||
-    filters.minPrice !== null ||
     filters.maxPrice !== null ||
     filters.rentable ||
     Object.keys(filters.facets).length > 0 ||
@@ -175,7 +166,7 @@ export function useFilters() {
     isActive,
     setCategory,
     setSort,
-    setPrice,
+    setMaxPrice,
     setPage,
     setRentable,
     toggleFacet,

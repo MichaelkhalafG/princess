@@ -37,7 +37,7 @@ const PRODUCT_SORTS = ["newest", "price_asc", "price_desc", "top_rated"] as cons
 /** Public catalog browse filters (API_MAP `GET /api/products`; Decisions D1/D2). */
 export const productFiltersSchema = z.object({
   category: z.string().uuid().optional(), // category_id (Phase 1 uses id, not slug — see queries.ts)
-  minPrice: z.coerce.number().int().min(0).optional(),
+  // Single max-price ceiling (Direction A slider). `minPrice` was dropped in the restyle.
   maxPrice: z.coerce.number().int().min(0).optional(),
   // Rentable toggle (CR-01 §B) — filters on products.is_rentable. Presence-based flag
   // (`?rentable=1`); any non-truthy value is treated as "no filter".

@@ -7,8 +7,12 @@ interface PriceTagProps {
   currency: Currency;
   /** Optional "was" price — struck through when higher than the current price. */
   compareAtMinor?: number | null;
-  /** `detail` uses the serif scale for product detail pages (DESIGN_RULES §3.1). */
-  emphasis?: "default" | "detail";
+  /**
+   * Visual scale (DESIGN_RULES §3.1/§4.5):
+   *  - `detail` — large serif for product detail pages.
+   *  - `card`   — serif ~20px / 600 / tabular for catalog cards (Direction A `.pcard__price`).
+   */
+  emphasis?: "default" | "detail" | "card";
   className?: string;
 }
 
@@ -33,6 +37,7 @@ export function PriceTag({
         className={cn(
           "font-medium text-foreground",
           emphasis === "detail" && "font-serif text-h3",
+          emphasis === "card" && "font-serif text-h4 font-semibold",
         )}
       />
       {showCompare ? (

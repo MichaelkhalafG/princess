@@ -159,7 +159,14 @@
   },
   "products": {
     "title": "Products",
-    "empty": "No products match your filters."
+    "subtitle": "Curated pieces for every occasion — shop, rent, and discover.",
+    "results": "{count} products",
+    "empty": "No products match your filters.",
+    "emptyState": {
+      "title": "No matching results",
+      "description": "Try raising your price ceiling or removing a few filters to find what suits you.",
+      "reset": "Reset filters"
+    }
   },
   "seller": {
     "products": "My products",
@@ -218,6 +225,12 @@
   },
   "catalog": {
     "addToCart": "Add to bag",
+    "add": "Add",
+    "badge": {
+      "rentable": "Rentable",
+      "verified": "Verified",
+      "new": "New"
+    },
     "size": "Size",
     "color": "Color",
     "reviews": "Reviews",
@@ -235,8 +248,12 @@
     "allCategories": "All categories",
     "minPrice": "Min price",
     "maxPrice": "Max price",
+    "priceRange": "Price",
+    "upTo": "Up to",
+    "remove": "Remove",
     "rentableLabel": "Availability",
-    "rentableOnly": "Available to rent",
+    "rentableOnly": "Rentable only",
+    "rentableHint": "Rent instead of buy",
     "rating": "Rating",
     "comingSoon": "Coming soon",
     "sortLabel": "Sort by",

@@ -72,7 +72,7 @@ export function Pagination({ page, total, limit, className }: PaginationProps) {
             …
           </span>
         ) : entry === page ? (
-          <span key={entry} aria-current="page" className={cn(cellBase, "bg-primary font-medium text-primary-foreground shadow-soft")}>
+          <span key={entry} aria-current="page" className={cn(cellBase, "bg-foreground font-semibold text-background")}>
             {entry}
           </span>
         ) : (

@@ -63,6 +63,10 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Marcellus (serif) ships weight 400 only — never faux-bold it when a bold weight is
+       requested (rely on size + tracking). Inter/El Messiri have real weights, so this is
+       a no-op for them. DESIGN_RULES §3.1. */
+    font-synthesis-weight: none;
   }
   /* DESIGN_RULES §8 — finer, more elegant Lucide stroke. */
   .lucide {
@@ -71,6 +75,53 @@
 }
 
 @layer components {
+  /* Max-price range slider (Direction A `.pprice`) — token-based (no raw hex): the
+     track fills rose-gold up to the thumb then champagne; the thumb is a pearl circle
+     with a rose-gold border. `--fill` (the % up to the thumb) is set inline (computed
+     value → the DESIGN_RULES §15 CSS-variable exception). Mirrors for RTL. */
+  .price-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--primary)) var(--fill, 60%),
+      hsl(var(--accent)) var(--fill, 60%),
+      hsl(var(--accent)) 100%
+    );
+  }
+  [dir="rtl"] .price-range {
+    background: linear-gradient(
+      270deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--primary)) var(--fill, 60%),
+      hsl(var(--accent)) var(--fill, 60%),
+      hsl(var(--accent)) 100%
+    );
+  }
+  .price-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--primary));
+    box-shadow: 0 2px 6px -1px hsl(var(--primary) / 0.5);
+    cursor: pointer;
+  }
+  .price-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--primary));
+    cursor: pointer;
+  }
+
   /* Auth banner — layered warm gradient (one-off background, DESIGN_RULES §2.3/§15
      exception). Token-based color stops (peach-soft → peach → champagne + a
      rose-gold bloom + an ivory glow). RTL mirrors the horizontal anchors so the

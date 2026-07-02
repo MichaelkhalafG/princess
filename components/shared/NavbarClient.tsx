@@ -41,10 +41,36 @@ export function NavbarClient({ role, userName, market }: NavbarClientProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    // Hysteresis (two thresholds with a dead zone) + rAF throttle. Collapsing the
+    // utility strip removes its 40px (h-10) from the sticky header, which reflows the
+    // page and — via scroll anchoring — nudges scrollY. A SINGLE threshold would flip
+    // straight back and oscillate. The dead zone (48–120 = 72px) is wider than the
+    // strip, so no reflow-induced scroll shift can cross both edges. Only setState on
+    // an actual boolean change (never per frame).
+    const HIDE_AT = 120; // collapse once scrolled past this
+    const SHOW_AT = 48; // only re-expand below this
+    let frame = 0;
+    let hidden = false;
+
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const next = y > HIDE_AT ? true : y < SHOW_AT ? false : hidden;
+      if (next !== hidden) {
+        hidden = next;
+        setScrolled(next);
+      }
+    };
+    const onScroll = () => {
+      if (frame === 0) frame = window.requestAnimationFrame(update);
+    };
+
+    update(); // sync initial state (e.g. reload while already scrolled)
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const isActive = (href: string) =>
@@ -100,7 +126,7 @@ export function NavbarClient({ role, userName, market }: NavbarClientProps) {
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-muted to-secondary">
               <Image src="/icon.svg" alt="" aria-hidden width={28} height={28} priority unoptimized className="h-7 w-7" />
             </span>
-            <span className="font-serif text-h3 font-semibold text-foreground">{tHome("brand")}</span>
+            <span className="font-serif text-h3 uppercase tracking-[0.14em] text-foreground">{tHome("brand")}</span>
           </Link>
         </div>
 

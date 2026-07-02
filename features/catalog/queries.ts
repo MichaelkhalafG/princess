@@ -85,6 +85,8 @@ export type ProductDetailResult =
 export interface CatalogFacets {
   categoryCounts: Record<string, number>;
   optionCounts: Record<string, number>;
+  /** Highest available price in the active market — the max-price slider's ceiling. */
+  priceCeiling: number;
 }
 
 /** The controlled attribute vocabulary (color/size…) for facets + the seller form. */
@@ -198,8 +200,7 @@ export async function queryProductList(
   if (facetProductIds !== null) query = query.in("product_id", facetProductIds);
   if (filters.category) query = query.eq("products.category_id", filters.category);
   if (filters.rentable) query = query.eq("products.is_rentable", true);
-  // Price filters/sort run on the ACTIVE market's price row (base column, indexed).
-  if (filters.minPrice !== undefined) query = query.gte("price", filters.minPrice);
+  // Max-price ceiling (Direction A slider) — runs on the ACTIVE market's price (indexed).
   if (filters.maxPrice !== undefined) query = query.lte("price", filters.maxPrice);
 
   switch (filters.sort) {
@@ -289,19 +290,22 @@ export async function queryProductDetail(
 export async function queryCatalogFacets(supabase: Db, market: Market): Promise<CatalogFacets> {
   const { data: priceData } = await supabase
     .from("product_prices")
-    .select("product_id, products!inner(category_id, status)")
+    .select("product_id, price, products!inner(category_id, status)")
     .eq("market", market)
     .eq("is_available", true)
     .eq("products.status", "active");
   const priceRows = (priceData ?? []) as unknown as {
     product_id: string;
+    price: number;
     products: { category_id: string | null };
   }[];
 
   const categoryCounts: Record<string, number> = {};
   const ids: string[] = [];
+  let priceCeiling = 0;
   for (const row of priceRows) {
     ids.push(row.product_id);
+    if (row.price > priceCeiling) priceCeiling = Math.ceil(row.price);
     const categoryId = row.products.category_id;
     if (categoryId) categoryCounts[categoryId] = (categoryCounts[categoryId] ?? 0) + 1;
   }
@@ -320,7 +324,7 @@ export async function queryCatalogFacets(supabase: Db, market: Market): Promise<
     }
   }
 
-  return { categoryCounts, optionCounts };
+  return { categoryCounts, optionCounts, priceCeiling };
 }
 
 interface AttributeDefinitionRow {

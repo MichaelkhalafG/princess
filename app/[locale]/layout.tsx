@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { IBM_Plex_Sans_Arabic, Inter, Playfair_Display } from "next/font/google";
+import { El_Messiri, Marcellus } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 
@@ -11,16 +11,19 @@ import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import "../globals.css";
 
-// DESIGN_RULES §3.1 — Inter (body), Playfair Display (serif headings),
-// IBM Plex Sans Arabic (Arabic). Self-hosted via next/font (no FOUT — §11).
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const playfair = Playfair_Display({
+// DESIGN_RULES §3.1 — the app uses EXACTLY TWO fonts: Marcellus for ALL Latin text
+// (headings, body, UI, prices, wordmark) and El Messiri for ALL Arabic text. Nothing else.
+// Self-hosted via next/font (no FOUT — §11). Marcellus is regular-weight ONLY (400):
+// emphasis comes from size + tracking, and `font-synthesis-weight: none` (globals.css) keeps
+// any requested bold from faux-bolding it. El Messiri (Arabic) keeps real 400–700 weights.
+const marcellus = Marcellus({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  weight: "400",
+  variable: "--font-serif",
   display: "swap",
 });
-const arabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
+const arabic = El_Messiri({
+  subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-arabic",
   display: "swap",
@@ -70,8 +73,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir={dir} suppressHydrationWarning>
       <body
         className={cn(
-          inter.variable,
-          playfair.variable,
+          marcellus.variable,
           arabic.variable,
           "min-h-screen bg-background font-sans antialiased",
         )}

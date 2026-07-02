@@ -89,15 +89,16 @@ Minimum contrast: **4.5:1** body, **3:1** large text (§10).
 
 ### 3.1 Fonts
 
-| Use | English | Arabic | Loading |
-|-----|---------|--------|---------|
-| **Display / Headings** | `Playfair Display` (serif, elegant) | `Tajawal` (or `IBM Plex Sans Arabic`) bold | `next/font`, subset, `display: swap` |
-| **Body / UI** | `Inter` | `IBM Plex Sans Arabic` | `next/font` |
-| **Numeric / tabular** | `Inter` tabular-nums | same | for prices, tables |
+**The app uses EXACTLY TWO fonts — nothing else.** Latin = Marcellus, Arabic = El Messiri.
 
-- Serif display gives the luxury/editorial feel (Sephora/Dior cue) and **differentiates us from the default Inter-only template**. Use serif for hero/section headings and prices on detail pages; use sans for everything functional.
-- Arabic must use a font with **proper Arabic letterforms** — never let Latin fonts fall back and render broken Arabic. Font is selected per `locale` in the root layout.
-- Never mix more than these two families.
+| Use | Latin (LTR) | Arabic (RTL) | Loading |
+|-----|-------------|--------------|---------|
+| **Everything** — headings, body, UI, nav, buttons, inputs, tables, wordmark, prices | `Marcellus` (**400 only**) | `El Messiri` (400–700) | `next/font/google`, self-hosted, `display: swap` |
+
+- **One family per script, applied app-wide.** `font-sans`, `font-serif`, and the body default all resolve to the same stack: `Marcellus → El Messiri`. Marcellus has no Arabic glyphs, so Arabic (and Arabic-Indic digits) fall through **per glyph** to El Messiri → Latin renders Marcellus, Arabic renders El Messiri, everywhere. `font-arabic` puts El Messiri first (for explicit Arabic headings). No Inter / Playfair / Tajawal / IBM Plex anywhere.
+- **Marcellus has NO bold** (400 only): hierarchy comes from **size + tracking + color**, never weight. `font-synthesis-weight: none` (globals.css) makes any `font-bold`/`font-semibold`/heading-weight on Latin text render at **400** (no faux-bold). El Messiri keeps real 400–700, so **Arabic bold still works**.
+- Marcellus is a display serif → keep **body line-height generous** (`body` 1.6, `body-sm` 1.5) so it stays readable at text sizes.
+- Numeric/tabular: `tabular-nums` where columns must align (prices, tables); Latin digits = Marcellus, Arabic-Indic digits = El Messiri.
 
 ### 3.2 Type scale (8px-aligned, responsive via `clamp`)
 
@@ -117,7 +118,7 @@ Minimum contrast: **4.5:1** body, **3:1** large text (§10).
 
 - Weights used: **400 / 500 / 600 / 700** only. No 300 (poor on Arabic), no 800/900.
 - Line-height: headings `1.15–1.25`, body `1.5–1.65`. Arabic gets slightly looser line-height (`1.7`) for diacritics.
-- Letter-spacing: slight negative on large serif headings (`-0.01em`); **never** letter-space Arabic.
+- Letter-spacing (Marcellus reads best slightly airy): large serif headings **~0.02–0.04em**; uppercase wordmark ("PRINCESS") and eyebrow/section labels **~0.12–0.18em**. **Never** letter-space Arabic (El Messiri) — tracking is Latin-only.
 - Max line length for reading text: ~70ch (`max-w-prose`).
 
 ---
@@ -152,11 +153,18 @@ Container horizontal padding: `16px` mobile, `24px` tablet, `32px` desktop.
 ### 4.5 Radius & elevation (identity-defining — keep consistent)
 
 - **Radius scale:** `sm 8px`, `md 12px`, `lg 16px`, `xl 24px`, `full`. Cards/dialogs = `lg`(16). Buttons/inputs = `md`(12). Chips = `full`. **No `rounded` (4px) defaults.**
-- **Shadows (soft, warm, never harsh black):** define exactly 3 levels:
-  - `shadow-soft` — resting cards: `0 1px 2px rgba(42,34,40,.04), 0 4px 12px rgba(183,110,121,.06)`
-  - `shadow-raised` — hover/dropdowns: `0 8px 24px rgba(42,34,40,.08)`
+- **Shadows (soft, warm, never harsh black):** define exactly 3 levels (upgraded to the
+  Direction-A reference spec — layered + warm, so surfaces read premium at rest and lift
+  clearly on hover):
+  - `shadow-soft` — resting cards: `0 1px 2px rgba(70,40,46,.04), 0 6px 18px -10px rgba(120,70,80,.18)`
+  - `shadow-raised` — hover/dropdowns: `0 4px 10px rgba(70,40,46,.07), 0 22px 40px -18px rgba(120,70,80,.30)`
   - `shadow-overlay` — dialogs/sheets: `0 16px 48px rgba(42,34,40,.16)`
   - **Only these three.** No `shadow-md`/`shadow-lg` ad-hoc, no pure-black shadows.
+- **Type — prices:** monetary values render in the **serif** family at the large end of
+  the scale (`text-body-lg`/`text-h4`, ~18–20px), `tabular-nums` for alignment. Eyebrow/
+  brand labels are `caption`, `uppercase`, letter-spaced, in `text-mist`.
+- **Catalog grid spacing:** generous gutters — column gap `~24px` (`gap-x-6`), row gap
+  `~32px` (`gap-y-8`) at desktop; tighter on mobile. Card body padding `16px` (`p-4`).
 
 ---
 
@@ -343,3 +351,50 @@ All components extend **shadcn/ui** primitives, restyled to our tokens (§14). E
 This file is mandatory for **every** implementation phase. Each phase prompt instructs: read `CLAUDE_RULES.md` + `DESIGN_RULES.md` first, follow both, never violate them, keep the whole app visually consistent. A PR that violates a forbidden rule (§17) does not pass review. When a new pattern is needed, **add it to this document first**, then implement — the doc stays the single source of truth.
 
 *Related: `CLAUDE_RULES.md` (engineering), `COMPONENT_TREE.md` (component inventory), `SYSTEM_ARCHITECTURE.md` (i18n/structure).*
+
+---
+
+## Changelog — token values upgraded to the Direction-A reference (2026-07-01)
+
+Aligned the token **values** to `docs/Princess Products (Sidebar) - Standalone.html` (our intended design system) so every page inherits the more premium depth/spacing. Global — applies app-wide (deeper, not broken).
+
+- **Shadows (§4.5)** — the main "flat → premium" fix (values live in `tailwind.config.ts › boxShadow`):
+  - `shadow-soft`: `0 1px 2px rgba(42,34,40,.04), 0 4px 12px rgba(183,110,121,.06)` → **`0 1px 2px rgba(70,40,46,.04), 0 6px 18px -10px rgba(120,70,80,.18)`** (warmer, softer spread at rest).
+  - `shadow-raised`: `0 8px 24px rgba(42,34,40,.08)` (single, flat) → **`0 4px 10px rgba(70,40,46,.07), 0 22px 40px -18px rgba(120,70,80,.30)`** (layered, deep lift on hover).
+  - `shadow-overlay`: unchanged (dialogs/sheets).
+- **Colors / radii / type scale / spacing scale** — already matched the reference exactly (ivory/plum-ink/rose-gold/peach/champagne/gold/mist/border `#EFE3D8`; `lg 16` / `md 12`; the display→caption scale; the 8px spacing scale), so **no value changes** were needed there.
+- **Consumption alignment (usage, not token values):** catalog grid gutters widened to `gap-x-6 gap-y-8` (desktop); product price now serif at `text-h4` (~20px) with `tabular-nums`; eyebrow stays `caption uppercase text-mist`. Documented in §4.5.
+
+### Addendum — Direction-A structural controls (2026-07-01)
+
+Confirmed the shadow/radii token values above are in place (`tailwind.config.ts`: `shadow-soft`/`shadow-raised` = the layered reference values; `borderRadius.lg = 1rem`/`md = 0.75rem`). **Fonts:** `Playfair Display` (`--font-playfair` → `font-serif`), `Inter` (`--font-inter` → `font-sans`), and `IBM Plex Sans Arabic` (`--font-arabic`) are all loaded via `next/font` in `app/[locale]/layout.tsx` — so serif prices/headings render real Playfair (Latin); Arabic-Indic price digits fall back (Playfair has no Arabic glyphs — inherent, not a bug).
+
+New catalog control patterns (all semantic tokens, RTL logical props):
+- **Toggle switch** (`.ptoggle`/`.pswitch`) — `role="switch"`, two-line label + a 44×24 track (`bg-primary` on / `bg-accent` off) with a translating `bg-card` thumb. Used for the rentable filter.
+- **Filter chips** (`.pchips`) — removable peach-soft pills (`bg-muted border-secondary text-primary`) with an × per active filter, plus a dashed "clear all" chip.
+- **Max-price slider** (`.pprice`) — a single `<input type="range" class="price-range">` ceiling (0 → the market's actual highest price), token-based two-tone fill via the `--fill` CSS var, pearl thumb; live serif value; replaced the min+max inputs.
+
+### Catalog pixel-parity spacing (approved exception to the 8px scale)
+
+The `/products` shell matches the approved mockup **exactly**, so it uses a few off-scale values (documented here per §17's "add the pattern to the doc first" rule; scoped to the catalog, not global):
+- **Shell:** `max-w-[1600px]`, inline padding `clamp(20px,4vw,56px)`; header `pt-[38px] pb-6` + hairline `hr` (`border-accent`); grid wrapper `pt-7 pb-20`.
+- **Layout:** `lg:grid-cols-[272px_1fr]` gap `36px` (`gap-9`), `items-start`; sidebar is **static** (not sticky), padding `6/22/22`.
+- **Grid gutters:** `gap-x-[22px] gap-y-[26px]` (`sm+`), `14/18` mobile; 2→3→4 cols.
+- **Card:** body padding `15/14/16`, media `aspect-[3/4]`, hover `-translate-y-1.5` + `shadow-raised`, `duration-[280ms] ease-[cubic-bezier(0.2,0.7,0.3,1)]`.
+- **Card type:** eyebrow `text-[11px]/tracking-[0.08em]` uppercase mist; title `text-[15px] leading-[1.35]`; price serif `text-h4` 600 tabular (`PriceTag emphasis="card"`).
+
+> **Delivery note:** `tailwind.config.ts` **theme** edits (e.g. the shadow values) are not hot-reloaded — restart `next dev` (not just delete `.next`) for them to take effect. Class/usage edits hot-reload normally.
+
+### Font pairing upgrade (2026-07-01)
+
+Premium pairing (before → after), all `next/font/google`, self-hosted, variables on `<body>`, mapped in `tailwind.config.ts`:
+- **Latin display/headings/wordmark/prices:** `Playfair Display` → **`Marcellus`** (400-only). Var renamed `--font-playfair` → **`--font-serif`**; `font-serif` maps to it, with an **El Messiri fallback** in the stack for Arabic-Indic. `font-synthesis-weight: none` prevents faux-bold (rely on size + tracking).
+- **Arabic (all UI — headings + body):** `IBM Plex Sans Arabic` → **`El Messiri`** (400/500/600/700), same `--font-arabic` var (RTL switch unchanged).
+- **Latin body/UI:** `Inter` — unchanged.
+- **Tracking applied:** page title `tracking-[0.02em]` (en only; ar untracked); wordmark `uppercase tracking-[0.14em]`; card eyebrow `tracking-[0.08em]`→`tracking-[0.12em]`.
+
+Per-script cascade verified: Latin → Marcellus/Inter; Arabic → El Messiri (headings use `font-arabic` directly; body Arabic falls through the sans stack to `--font-arabic`; serif-context Arabic-Indic digits fall through the serif stack to `--font-arabic`).
+
+### Two-font unification (2026-07-01)
+
+Reduced the app to **exactly two fonts**: **Marcellus** (all Latin) + **El Messiri** (all Arabic). **Inter removed** (was Latin body/UI) — `--font-inter` deleted from the layout and `tailwind.config`; `font-sans` now resolves to `Marcellus → El Messiri` (identical to `font-serif`). No reference to Inter / Playfair / Tajawal / IBM Plex remains in the layout, config, or components. Every page/component inherits it via `font-sans`/`font-serif`/`font-arabic` (no per-component font changes needed). No-bold Latin handled by `font-synthesis-weight: none` (bold classes render 400); Arabic bold unaffected.

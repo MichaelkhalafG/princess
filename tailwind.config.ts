@@ -76,20 +76,20 @@ const config: Config = {
       },
       boxShadow: {
         // DESIGN_RULES §4.5 — exactly three soft, warm shadows. No pure-black.
-        soft: "0 1px 2px rgba(42,34,40,0.04), 0 4px 12px rgba(183,110,121,0.06)",
-        raised: "0 8px 24px rgba(42,34,40,0.08)",
+        // Upgraded to the Direction-A reference spec: layered, warmer, with a deep
+        // spread on raised so cards read premium at rest and lift clearly on hover.
+        soft: "0 1px 2px rgba(70,40,46,0.04), 0 6px 18px -10px rgba(120,70,80,0.18)",
+        raised: "0 4px 10px rgba(70,40,46,0.07), 0 22px 40px -18px rgba(120,70,80,0.30)",
         overlay: "0 16px 48px rgba(42,34,40,0.16)",
       },
       fontFamily: {
-        sans: [
-          "var(--font-inter)",
-          "var(--font-arabic)",
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif",
-        ],
-        serif: ["var(--font-playfair)", "ui-serif", "Georgia", "serif"],
-        arabic: ["var(--font-arabic)", "ui-sans-serif", "sans-serif"],
+        // TWO FONTS ONLY. Every family resolves to Marcellus (Latin) → El Messiri (Arabic).
+        // Marcellus lacks Arabic glyphs, so Arabic / Arabic-Indic text (incl. prices under
+        // `ar`) falls through per-glyph to El Messiri — i.e. Latin = Marcellus, Arabic = El
+        // Messiri everywhere. `sans` and `serif` are intentionally identical (unified).
+        sans: ["var(--font-serif)", "var(--font-arabic)", "ui-serif", "Georgia", "serif"],
+        serif: ["var(--font-serif)", "var(--font-arabic)", "ui-serif", "Georgia", "serif"],
+        arabic: ["var(--font-arabic)", "var(--font-serif)", "ui-sans-serif", "sans-serif"],
       },
       fontSize: {
         // DESIGN_RULES §3.2 type scale.
